@@ -41,17 +41,19 @@ type AvatarDBEntity struct {
 	UpdatedAt *time.Time `db:"updated_at"`
 	Height    uint64     `db:"height"`
 	Width     uint64     `db:"width"`
+	S3Key     string     `db:"s3_key"`
 }
 
-type GetAvatarResponse struct {
-	ID         uuid.UUID  `json:"id"`
-	UserID     string     `json:"user_id"`
-	FileName   string     `json:"file_name"`
-	MimeType   string     `json:"mime_type"`
-	Size       uint64     `json:"size"`
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
-	Dimensions Dimensions `json:"dimensions"`
+type GetAvatarMetadata struct {
+	ID         uuid.UUID              `json:"id"`
+	UserID     string                 `json:"user_id"`
+	FileName   string                 `json:"file_name"`
+	MimeType   string                 `json:"mime_type"`
+	Size       uint64                 `json:"size"`
+	CreatedAt  time.Time              `json:"created_at"`
+	UpdatedAt  time.Time              `json:"updated_at"`
+	Dimensions Dimensions             `json:"dimensions"`
+	Thumbnails []GetThumbnailMetadata `json:"thumbnails"`
 }
 
 type SaveThumbnail struct {
@@ -65,4 +67,9 @@ type UpdateAvatarStatus struct {
 	UploadStatus     string    `db:"upload_status"`
 	ProcessingStatus string    `db:"processing_status"`
 	UpdatedAt        time.Time `db:"updated_at"`
+}
+
+type GetThumbnailMetadata struct {
+	Dimensions string `json:"size" db:"dimensions"`
+	S3Key      string `json:"url" db:"s3_key"`
 }

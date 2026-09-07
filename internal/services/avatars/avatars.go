@@ -14,6 +14,7 @@ import (
 	"uuid"
 
 	"github.com/artni96/GophProfile/internal/models"
+	"github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/internal/worker"
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	"github.com/deepteams/webp"
@@ -120,27 +121,62 @@ func (s *Service) Save(
 	return res, nil
 }
 
-func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.GetAvatarResponse, err error) {
-	dbEntity, err := s.repo.GetMetadata(ctx, id)
+func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.GetAvatarMetadata, err error) {
+	original, thumbnails, err := s.repo.GetMetadata(ctx, id)
 	if err != nil {
 		return res, err
 	}
 	dimensions := models.Dimensions{
-		Width:  dbEntity.Width,
-		Height: dbEntity.Height,
+		Width:  original.Width,
+		Height: original.Height,
 	}
 
-	res.ID = dbEntity.ID
-	res.UserID = dbEntity.UserID
-	res.FileName = dbEntity.FileName
-	res.MimeType = dbEntity.MimeType
-	res.Size = dbEntity.Size
+	res.ID = original.ID
+	res.UserID = original.UserID
+	res.FileName = original.FileName
+	res.MimeType = original.MimeType
+	res.Size = original.Size
 	res.Dimensions = dimensions
-	res.CreatedAt = dbEntity.CreatedAt
-	if dbEntity.UpdatedAt != nil {
-		res.UpdatedAt = *dbEntity.UpdatedAt
+	res.CreatedAt = original.CreatedAt
+
+	for i := range thumbnails {
+		thumbnails[i].S3Key = fmt.Sprintf(
+			"%s/%s/%s", s.s3Client.GetAddr(), s.s3Client.GetBucketName(), thumbnails[i].S3Key)
+	}
+	res.Thumbnails = thumbnails
+	if original.UpdatedAt != nil {
+		res.UpdatedAt = *original.UpdatedAt
 	}
 	return res, nil
+}
+
+func (s *Service) Get(ctx context.Context, id uuid.UUID, dimensions string) (res []byte, err error) {
+	md, thumbnails, err := s.repo.GetMetadata(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	var s3key string
+	if dimensions == "" || dimensions == "original" {
+		s3key = md.S3Key
+	} else {
+		for _, thumbnail := range thumbnails {
+			if thumbnail.Dimensions == dimensions {
+				s3key = thumbnail.S3Key
+			}
+		}
+	}
+	if s3key == "" {
+		s.logger.Debug("failed to get metadata",
+			zap.String("avatar_id", id.String()), zap.String("dimensions", dimensions))
+		return nil, avatars.ErrAvatarNotFound
+	}
+	res, err = s.s3Client.Get(ctx, s3key)
+	if err != nil {
+		s.logger.Debug("failed to fetch me",
+			zap.String("avatar_id", id.String()),
+			zap.String("dimensions", dimensions), zap.Error(err))
+	}
+	return res, err
 }
 
 func (s *Service) SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error {

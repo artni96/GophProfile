@@ -3096,3 +3096,415 @@
 {"L":"DEBUG","T":"2026-09-07T11:47:01.302+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:208","M":"worker process ack done","worker id":6,"message id":"af57a228-9436-4923-9b3f-7cd7afb39067"}
 {"L":"INFO","T":"2026-09-07T11:47:18.210+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
 {"L":"INFO","T":"2026-09-07T11:47:18.211+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:51:45.356+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.374+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:51:45.375+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"INFO","T":"2026-09-07T11:53:21.242+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:53:21.243+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:53:23.429+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:53:23.447+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"INFO","T":"2026-09-07T11:54:45.298+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:54:45.299+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:54:46.396+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:54:46.407+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"INFO","T":"2026-09-07T11:54:54.674+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:54:54.676+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:54:55.740+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:54:55.750+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"INFO","T":"2026-09-07T11:55:17.818+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:55:17.820+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:55:18.896+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"INFO","T":"2026-09-07T11:55:23.745+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:55:23.763+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"INFO","T":"2026-09-07T11:55:38.672+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:55:38.674+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:55:39.548+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:55:39.559+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"INFO","T":"2026-09-07T11:57:50.681+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:57:50.683+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:57:51.858+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:57:51.873+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"INFO","T":"2026-09-07T11:58:18.571+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:58:18.574+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:58:19.727+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:58:19.737+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"INFO","T":"2026-09-07T11:59:07.945+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T11:59:07.946+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T11:59:09.247+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T11:59:09.261+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"INFO","T":"2026-09-07T12:02:14.047+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T12:02:14.049+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T12:02:16.244+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T12:02:16.262+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"INFO","T":"2026-09-07T12:03:42.724+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T12:03:42.726+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T12:03:44.257+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T12:03:44.275+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"INFO","T":"2026-09-07T12:04:08.825+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T12:04:08.827+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T12:04:09.910+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T12:04:09.924+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T12:04:34.838+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:58","M":"Successfully uploaded to gophprofile/user1/originals/e936deea-f242-4fcb-b612-fe36a1c5401e"}
+{"L":"DEBUG","T":"2026-09-07T12:04:34.851+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/rabbitmq.go:141","M":"message has been delivered to broker successfully"}
+{"L":"DEBUG","T":"2026-09-07T12:04:34.857+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:58","M":"Successfully uploaded to gophprofile/user1/100x100/e936deea-f242-4fcb-b612-fe36a1c5401e"}
+{"L":"DEBUG","T":"2026-09-07T12:04:34.870+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:58","M":"Successfully uploaded to gophprofile/user1/300x300/e936deea-f242-4fcb-b612-fe36a1c5401e"}
+{"L":"DEBUG","T":"2026-09-07T12:04:34.871+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:208","M":"worker process ack done","worker id":6,"message id":"b9c1893a-9a87-4917-b0b7-20fad8370a6c"}
+{"L":"DEBUG","T":"2026-09-07T12:04:40.468+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:58","M":"Successfully uploaded to gophprofile/user1/originals/ce2aca7d-f678-4bef-8343-103ce641fe8a"}
+{"L":"DEBUG","T":"2026-09-07T12:04:40.472+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/rabbitmq.go:141","M":"message has been delivered to broker successfully"}
+{"L":"DEBUG","T":"2026-09-07T12:04:40.476+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:58","M":"Successfully uploaded to gophprofile/user1/100x100/ce2aca7d-f678-4bef-8343-103ce641fe8a"}
+{"L":"DEBUG","T":"2026-09-07T12:04:40.486+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:58","M":"Successfully uploaded to gophprofile/user1/300x300/ce2aca7d-f678-4bef-8343-103ce641fe8a"}
+{"L":"DEBUG","T":"2026-09-07T12:04:40.487+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:208","M":"worker process ack done","worker id":8,"message id":"fbd0aee6-e036-4c1f-a45a-b3f95a32a2da"}
+{"L":"INFO","T":"2026-09-07T23:49:11.471+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T23:49:11.471+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-07T23:49:14.393+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-07T23:49:14.418+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"INFO","T":"2026-09-07T23:54:04.382+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-07T23:54:04.383+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:04:05.839+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:04:05.867+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:04:09.633+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/repository/avatars/avatars.go:85","M":"failed to get thumbnails","id":"9794d89f-e78b-435f-bb48-c303fad67ecf","error":"ERROR: relation \"thumbnails\" does not exist (SQLSTATE 42P01)"}
+{"L":"INFO","T":"2026-09-08T00:04:36.454+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:04:36.454+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:04:38.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:04:38.385+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:04:47.636+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/repository/avatars/avatars.go:85","M":"failed to get thumbnails","id":"9794d89f-e78b-435f-bb48-c303fad67ecf","error":"ERROR: relation \"thumbnails\" does not exist (SQLSTATE 42P01)"}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":7}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":8}
+{"L":"ERROR","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":4}
+{"L":"ERROR","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":5}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":6}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:84","M":"images.dlq is closed"}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":10}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":1}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":0}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:52","M":"dlq worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func2\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:52\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":2}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.100+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":9}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":3}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:05:33.101+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"INFO","T":"2026-09-08T00:05:33.103+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:05:33.103+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:05:35.954+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:05:35.971+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:05:36.420+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/repository/avatars/avatars.go:85","M":"failed to get thumbnails","id":"9794d89f-e78b-435f-bb48-c303fad67ecf","error":"ERROR: relation \"thumbnails\" does not exist (SQLSTATE 42P01)"}
+{"L":"INFO","T":"2026-09-08T00:06:03.060+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:06:03.062+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:06:04.869+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:06:04.878+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":6}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":4}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":2}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":10}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/repository/avatars/avatars.go:85","M":"failed to get thumbnails","id":"9794d89f-e78b-435f-bb48-c303fad67ecf","error":"ERROR: relation \"thumbnails\" does not exist (SQLSTATE 42P01)"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:84","M":"images.dlq is closed"}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":3}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:52","M":"dlq worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func2\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:52\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":1}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":0}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":9}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":8}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":5}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"DEBUG","T":"2026-09-08T00:06:23.127+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:162","M":"broker queue is closed","worker id":7}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"ERROR","T":"2026-09-08T00:06:48.178+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44","M":"worker failed","error":"broker queue is closed","S":"github.com/artni96/GophProfile/internal/worker.(*Pool).Launch.func1\n\t/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:44\nsync.(*WaitGroup).Go.func1\n\t/Users/artni/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.0.darwin-arm64/src/sync/waitgroup.go:258"}
+{"L":"INFO","T":"2026-09-08T00:06:48.180+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:06:48.181+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:06:51.104+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:06:51.123+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"INFO","T":"2026-09-08T00:08:47.602+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:08:47.603+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:08:48.871+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:08:48.886+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"INFO","T":"2026-09-08T00:09:08.440+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:09:08.442+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:09:22.495+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-08T00:09:22.512+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"INFO","T":"2026-09-08T00:09:47.206+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:09:47.206+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:09:48.357+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.370+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.371+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:09:48.371+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"INFO","T":"2026-09-08T00:14:44.900+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:14:44.902+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:23:01.401+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:23:01.421+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:23:07.015+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:80","M":"Successfully downloaded gophprofile/user1/300x300/9794d89f-e78b-435f-bb48-c303fad67ecf (13641 bytes)\n"}
+{"L":"DEBUG","T":"2026-09-08T00:23:16.785+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:80","M":"Successfully downloaded gophprofile/user1/100x100/9794d89f-e78b-435f-bb48-c303fad67ecf (2487 bytes)\n"}
+{"L":"DEBUG","T":"2026-09-08T00:23:20.292+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/services/avatars/avatars.go:169","M":"failed to get metadata","avatar_id":"9794d89f-e78b-435f-bb48-c303fad67ecf","dimensions":"100x1000"}
+{"L":"DEBUG","T":"2026-09-08T00:23:28.852+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/storage/s3.go:80","M":"Successfully downloaded gophprofile/user1/originals/9794d89f-e78b-435f-bb48-c303fad67ecf (27472 bytes)\n"}
+{"L":"INFO","T":"2026-09-08T00:24:56.009+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:24:56.010+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"INFO","T":"2026-09-08T00:25:16.486+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/app/app.go:67","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:60","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-08T00:25:16.497+0300","C":"/Users/artni/Documents/Dev/GophProfile/internal/worker/pool.go:128","M":"worker started","worker number":9}
+{"L":"INFO","T":"2026-09-08T00:25:17.518+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-08T00:25:17.519+0300","C":"/Users/artni/Documents/Dev/GophProfile/cmd/server/app.go:54","M":"app closed gracefully"}

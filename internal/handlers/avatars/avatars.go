@@ -85,6 +85,30 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	w.Write(bytesRes)
 }
 
+func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
+	strAvatarID := chi.URLParam(r, "avatar_id")
+	avatarID, err := uuid.Parse(strAvatarID)
+	w.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(response500)
+		return
+	}
+	size := r.URL.Query().Get("size")
+	res, err := h.Service.Get(h.ctx, avatarID, size)
+	if err != nil {
+		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write(errMsg("Avatar not found"))
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(response500)
+		return
+	}
+	w.Write(res)
+}
+
 func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	avatarID := chi.URLParam(r, "avatarID")
 	if avatarID == "" {
@@ -100,6 +124,9 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 			w.Write(errMsg(fmt.Sprintf("avatar with id %s not found", avatarID)))
 			return
 		}
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(response500)
+		return
 	}
 	bytesRes, err := json.Marshal(res)
 	if err != nil {
@@ -123,6 +150,7 @@ func AvatarRouter(ctx context.Context, service interfaces.ServiceI) chi.Router {
 			w.Write([]byte(fmt.Sprintf("Method %s is forbidden", r.Method)))
 		})
 		r.Post("/", handler.Upload)
+		r.Get("/{avatar_id}", handler.Get)
 		r.Get("/{avatarID}/metadata", handler.GetMetadata)
 	})
 	return r

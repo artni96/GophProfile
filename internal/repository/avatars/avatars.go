@@ -62,17 +62,34 @@ func (r *Repository) Save(ctx context.Context, avatar models.SaveAvatarRequest) 
 	return res, nil
 }
 
-func (r *Repository) GetMetadata(ctx context.Context, id uuid.UUID) (res models.AvatarDBEntity, err error) {
+func (r *Repository) GetMetadata(ctx context.Context, id uuid.UUID) (
+	res models.AvatarDBEntity, thumbnails []models.GetThumbnailMetadata, err error) {
 	stmt := `
-		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at 
+		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at, s3_key 
 		FROM avatars 
 		WHERE id = $1 AND deleted_at IS NULL`
-	err = r.db.GetContext(ctx, &res, stmt, id)
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		r.logger.Debug("failed to begin transaction", zap.Error(err))
+		return res, nil, fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	err = tx.Get(&res, stmt, id)
 	if err != nil {
 		r.logger.Debug("failed to get avatar", zap.String("id", id.String()), zap.Error(err))
-		return res, ErrAvatarNotFound
+		return res, nil, ErrAvatarNotFound
 	}
-	return res, nil
+	//var thumbnails []models.GetThumbnailMetadata
+	thumbnailsStmt := `SELECT dimensions, s3_key FROM avatar_thumbnails WHERE avatar_id = $1`
+	err = tx.Select(&thumbnails, thumbnailsStmt, id)
+	if err != nil {
+		r.logger.Debug("failed to get thumbnails", zap.String("id", id.String()), zap.Error(err))
+		return res, nil, fmt.Errorf("failed to get thumbnails: %w", err)
+	}
+	if err = tx.Commit(); err != nil {
+		r.logger.Debug("failed to commit transaction", zap.String("id", id.String()), zap.Error(err))
+		return res, nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return res, thumbnails, nil
 }
 
 func (r *Repository) SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error {

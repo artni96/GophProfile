@@ -104,8 +104,8 @@ func (a *App) initRouter(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get work dir: %w", err)
 	}
-	filesDir := http.Dir(filepath.Join(workDir, "web/static"))
-	a.router.Handle("/*", http.FileServer(filesDir))
+	webDir := http.Dir(filepath.Join(workDir, "web/static"))
+	a.router.Handle("/web/upload", http.StripPrefix("/web/upload", http.FileServer(webDir)))
 	return nil
 }
 

@@ -11,7 +11,8 @@ import (
 
 type RepositoryI interface {
 	Save(ctx context.Context, toUpload models.SaveAvatarRequest) (models.SaveAvatarResponse, error)
-	GetMetadata(ctx context.Context, id uuid.UUID) (res models.AvatarDBEntity, err error)
+	GetMetadata(ctx context.Context, id uuid.UUID) (
+		res models.AvatarDBEntity, thumbnails []models.GetThumbnailMetadata, err error)
 	SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error
 	UpdateStatus(ctx context.Context, status models.UpdateAvatarStatus) error
 }
@@ -19,9 +20,10 @@ type RepositoryI interface {
 type ServiceI interface {
 	Save(ctx context.Context, file multipart.File, header *multipart.FileHeader, userID string) (
 		models.SaveAvatarResponse, error)
-	GetMetadata(ctx context.Context, id uuid.UUID) (models.GetAvatarResponse, error)
+	GetMetadata(ctx context.Context, id uuid.UUID) (models.GetAvatarMetadata, error)
 	SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error
 	UploadThumbnailsToS3(ctx context.Context, msg models.Message) error
+	Get(ctx context.Context, id uuid.UUID, dimensions string) (res []byte, err error)
 }
 
 type S3I interface {
