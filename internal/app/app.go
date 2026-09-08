@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/artni96/GophProfile/internal/broker"
 	"github.com/artni96/GophProfile/internal/config"
 	"github.com/artni96/GophProfile/internal/handlers/avatars"
 	"github.com/artni96/GophProfile/internal/handlers/health"
@@ -16,7 +17,6 @@ import (
 	"github.com/artni96/GophProfile/internal/server"
 	avatarsserv "github.com/artni96/GophProfile/internal/services/avatars"
 	"github.com/artni96/GophProfile/internal/storage"
-	"github.com/artni96/GophProfile/internal/worker"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jmoiron/sqlx"
@@ -42,7 +42,7 @@ type App struct {
 	Server *server.HTTPServer
 	router *chi.Mux
 
-	Broker *worker.Broker
+	Broker *broker.Broker
 }
 
 // InitDBConn initializes a database connection according to the app config.
@@ -97,7 +97,7 @@ func (a *App) initRouter(ctx context.Context) error {
 	avatarRouter := avatars.AvatarRouter(ctx, a.Service)
 	a.router.Mount("/api/v1/avatars", avatarRouter)
 
-	healthRouter := health.HealthRouter(ctx, a.DB, a.S3Client, a.Logger)
+	healthRouter := health.HealthRouter(ctx, a.DB, a.S3Client, a.Service, a.Logger)
 	a.router.Mount("/api/v1/health", healthRouter)
 
 	workDir, err := os.Getwd()
@@ -158,7 +158,7 @@ func (a *App) initS3Client(cfg *config.Config, logger *zap.Logger) error {
 }
 
 func (a *App) initBroker(logger *zap.Logger) error {
-	broker, err := worker.NewBroker(logger)
+	broker, err := broker.NewBroker(logger)
 	if err != nil {
 		return err
 	}

@@ -62,31 +62,47 @@ func (r *Repository) Save(ctx context.Context, avatar models.SaveAvatarRequest) 
 	return res, nil
 }
 
-func (r *Repository) GetMetadata(ctx context.Context, id uuid.UUID) (
+func (r *Repository) GetMetadata(ctx context.Context, flt models.GetAvatarMetadataFilters) (
 	res models.AvatarDBEntity, thumbnails []models.GetThumbnailMetadata, err error) {
-	stmt := `
-		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at, s3_key 
-		FROM avatars 
-		WHERE id = $1 AND deleted_at IS NULL`
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
 		r.logger.Debug("failed to begin transaction", zap.Error(err))
 		return res, nil, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	err = tx.Get(&res, stmt, id)
-	if err != nil {
-		r.logger.Debug("failed to get avatar", zap.String("id", id.String()), zap.Error(err))
-		return res, nil, ErrAvatarNotFound
+
+	var stmt string
+	if flt.ID != uuid.Nil() && flt.UserID == "" {
+		stmt = `
+		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at, s3_key 
+		FROM avatars 
+		WHERE id = $1 AND deleted_at IS NULL`
+		err = tx.Get(&res, stmt, flt.ID)
+		if err != nil {
+			r.logger.Debug("failed to get avatar by id", zap.String("id", flt.ID.String()), zap.Error(err))
+			return res, nil, ErrAvatarNotFound
+		}
+	} else if flt.ID == uuid.Nil() && flt.UserID != "" {
+		stmt = `
+		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at, s3_key 
+		FROM avatars 
+		WHERE user_id = $1 AND deleted_at IS NULL 
+		ORDER BY updated_at DESC 
+		LIMIT 1`
+		err = tx.Get(&res, stmt, flt.UserID)
+		if err != nil {
+			r.logger.Debug("failed to get last user avatar", zap.String("user_id", flt.UserID), zap.Error(err))
+			return res, nil, ErrAvatarNotFound
+		}
 	}
-	//var thumbnails []models.GetThumbnailMetadata
+
 	thumbnailsStmt := `SELECT dimensions, s3_key FROM avatar_thumbnails WHERE avatar_id = $1`
-	err = tx.Select(&thumbnails, thumbnailsStmt, id)
+	err = tx.Select(&thumbnails, thumbnailsStmt, res.ID)
 	if err != nil {
-		r.logger.Debug("failed to get thumbnails", zap.String("id", id.String()), zap.Error(err))
+		r.logger.Debug("failed to get thumbnails", zap.String("id", res.ID.String()), zap.Error(err))
 		return res, nil, fmt.Errorf("failed to get thumbnails: %w", err)
 	}
 	if err = tx.Commit(); err != nil {
-		r.logger.Debug("failed to commit transaction", zap.String("id", id.String()), zap.Error(err))
+		r.logger.Debug("failed to commit transaction", zap.String("id", res.ID.String()), zap.Error(err))
 		return res, nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return res, thumbnails, nil

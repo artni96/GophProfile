@@ -56,6 +56,16 @@ type GetAvatarMetadata struct {
 	Thumbnails []GetThumbnailMetadata `json:"thumbnails"`
 }
 
+type GetAvatarMetadataFilters struct {
+	ID     uuid.UUID
+	UserID string
+}
+
+type GetAvatarResponse struct {
+	MimeType string
+	Binary   []byte
+}
+
 type SaveThumbnail struct {
 	AvatarID   uuid.UUID `db:"avatar_id"`
 	S3Key      string    `db:"s3_key"`

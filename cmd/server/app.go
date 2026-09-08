@@ -32,7 +32,7 @@ func run(cfg *config.Config) error {
 	}
 	app.LaunchServer()
 
-	wp := worker.NewPool(app.Broker, app.Eg, app.Service)
+	wp := worker.NewPool(app.Broker, app.Eg, app.Service, app.Logger)
 	go wp.Launch(ctx)
 
 	shutdownCtx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)

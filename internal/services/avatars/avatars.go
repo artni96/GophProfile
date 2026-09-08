@@ -13,9 +13,9 @@ import (
 	"time"
 	"uuid"
 
+	"github.com/artni96/GophProfile/internal/broker"
 	"github.com/artni96/GophProfile/internal/models"
 	"github.com/artni96/GophProfile/internal/repository/avatars"
-	"github.com/artni96/GophProfile/internal/worker"
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	"github.com/deepteams/webp"
 	"go.uber.org/zap"
@@ -37,11 +37,11 @@ type Service struct {
 	repo     interfaces.RepositoryI
 	logger   *zap.Logger
 	s3Client interfaces.S3I
-	broker   *worker.Broker
+	Broker   interfaces.BrokerI
 }
 
-func NewService(repo interfaces.RepositoryI, logger *zap.Logger, s3Client interfaces.S3I, broker *worker.Broker) *Service {
-	serv := &Service{repo: repo, logger: logger, s3Client: s3Client, broker: broker}
+func NewService(repo interfaces.RepositoryI, logger *zap.Logger, s3Client interfaces.S3I, broker *broker.Broker) *Service {
+	serv := &Service{repo: repo, logger: logger, s3Client: s3Client, Broker: broker}
 	return serv
 }
 
@@ -113,7 +113,7 @@ func (s *Service) Save(
 		ID:       uuid.New(),
 	}
 
-	err = s.broker.Produce(ctx, brokerMessage)
+	err = s.Broker.Produce(ctx, brokerMessage)
 	if err != nil {
 		return res, fmt.Errorf("failed to send message to the broker: %w", err)
 	}
@@ -122,7 +122,10 @@ func (s *Service) Save(
 }
 
 func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.GetAvatarMetadata, err error) {
-	original, thumbnails, err := s.repo.GetMetadata(ctx, id)
+	flt := models.GetAvatarMetadataFilters{
+		ID: id,
+	}
+	original, thumbnails, err := s.repo.GetMetadata(ctx, flt)
 	if err != nil {
 		return res, err
 	}
@@ -150,10 +153,11 @@ func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.Get
 	return res, nil
 }
 
-func (s *Service) Get(ctx context.Context, id uuid.UUID, dimensions string) (res []byte, err error) {
-	md, thumbnails, err := s.repo.GetMetadata(ctx, id)
+func (s *Service) Get(ctx context.Context, flt models.GetAvatarMetadataFilters, dimensions string) (
+	res models.GetAvatarResponse, err error) {
+	md, thumbnails, err := s.repo.GetMetadata(ctx, flt)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
 	var s3key string
 	if dimensions == "" || dimensions == "original" {
@@ -167,15 +171,17 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID, dimensions string) (res
 	}
 	if s3key == "" {
 		s.logger.Debug("failed to get metadata",
-			zap.String("avatar_id", id.String()), zap.String("dimensions", dimensions))
-		return nil, avatars.ErrAvatarNotFound
+			zap.String("avatar_id", md.ID.String()), zap.String("dimensions", dimensions))
+		return res, avatars.ErrAvatarNotFound
 	}
-	res, err = s.s3Client.Get(ctx, s3key)
+	binary, err := s.s3Client.Get(ctx, s3key)
 	if err != nil {
 		s.logger.Debug("failed to fetch me",
-			zap.String("avatar_id", id.String()),
+			zap.String("avatar_id", md.ID.String()),
 			zap.String("dimensions", dimensions), zap.Error(err))
 	}
+	res.Binary = binary
+	res.MimeType = md.MimeType
 	return res, err
 }
 

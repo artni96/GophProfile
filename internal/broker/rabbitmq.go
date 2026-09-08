@@ -1,4 +1,4 @@
-package worker
+package broker
 
 import (
 	"context"
@@ -19,13 +19,13 @@ type BrokerI interface {
 }
 
 type Broker struct {
-	conn     *amqp.Connection
-	ch       *amqp.Channel
+	Conn     *amqp.Connection
+	Ch       *amqp.Channel
 	logger   *zap.Logger
 	ex       string
 	binding  string
-	q        string
-	dlq      string
+	MainQ    string
+	Dlq      string
 	confirms chan amqp.Confirmation
 }
 
@@ -41,8 +41,8 @@ func NewBroker(logger *zap.Logger) (*Broker, error) {
 }
 
 func (b *Broker) Close() {
-	if b.conn != nil {
-		b.conn.Close()
+	if b.Conn != nil {
+		b.Conn.Close()
 	}
 }
 
@@ -79,12 +79,12 @@ func (b *Broker) Init() error {
 	if err = ch.ExchangeDeclare("images.dlx", "direct", true, false, false, false, nil); err != nil {
 		log.Fatal(err)
 	}
-	b.dlq = "images.dlq"
-	if _, err = ch.QueueDeclare(b.dlq, true, false, false, false, nil); err != nil {
+	b.Dlq = "images.dlq"
+	if _, err = ch.QueueDeclare(b.Dlq, true, false, false, false, nil); err != nil {
 		log.Fatal(err)
 	}
 
-	if err = ch.QueueBind(b.dlq, "failed", "images.dlx", false, nil); err != nil {
+	if err = ch.QueueBind(b.Dlq, "failed", "images.dlx", false, nil); err != nil {
 		log.Fatal(err)
 	}
 
@@ -99,8 +99,8 @@ func (b *Broker) Init() error {
 		"x-dead-letter-routing-key": "failed",
 	}
 
-	b.q = "images.main"
-	q, err := ch.QueueDeclare(b.q, true, false, false, false, dlxArgs)
+	b.MainQ = "images.main"
+	q, err := ch.QueueDeclare(b.MainQ, true, false, false, false, dlxArgs)
 	if err != nil {
 		b.logger.Error("failed to declare queue", zap.Error(err))
 		return fmt.Errorf("failed to declare queue: %w", err)
@@ -110,8 +110,8 @@ func (b *Broker) Init() error {
 		b.logger.Error("failed to bind queue", zap.Error(err))
 		return fmt.Errorf("failed to bind queue: %w", err)
 	}
-	b.ch = ch
-	b.conn = conn
+	b.Ch = ch
+	b.Conn = conn
 	return nil
 }
 
@@ -119,7 +119,7 @@ func (b *Broker) Produce(ctx context.Context, m models.Message) error {
 	brokerCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	err := b.ch.PublishWithContext(brokerCtx, b.ex, "main", true, false, amqp.Publishing{
+	err := b.Ch.PublishWithContext(brokerCtx, b.ex, "main", true, false, amqp.Publishing{
 		DeliveryMode: amqp.Persistent,
 		Body:         m.Body,
 		ContentType:  "text/plain",
@@ -145,5 +145,14 @@ func (b *Broker) Produce(ctx context.Context, m models.Message) error {
 	case <-ctx.Done():
 		log.Println("failed to deliver message to broker: timeout is out")
 	}
+	return nil
+}
+
+func (b *Broker) Check() error {
+	ch, err := b.Conn.Channel()
+	if err != nil {
+		return err
+	}
+	defer ch.Close()
 	return nil
 }

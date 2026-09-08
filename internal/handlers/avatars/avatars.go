@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"uuid"
 
+	"github.com/artni96/GophProfile/internal/models"
 	avatarsrepo "github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	_ "golang.org/x/image/webp"
@@ -86,16 +87,19 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	strAvatarID := chi.URLParam(r, "avatar_id")
 	avatarID, err := uuid.Parse(strAvatarID)
-	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(response500)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(errMsg("Avatar not found"))
 		return
 	}
 	size := r.URL.Query().Get("size")
-	res, err := h.Service.Get(h.ctx, avatarID, size)
+	flt := models.GetAvatarMetadataFilters{
+		ID: avatarID,
+	}
+	res, err := h.Service.Get(h.ctx, flt, size)
 	if err != nil {
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -106,7 +110,8 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 		w.Write(response500)
 		return
 	}
-	w.Write(res)
+	w.Header().Set("Content-Type", res.MimeType)
+	w.Write(res.Binary)
 }
 
 func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
