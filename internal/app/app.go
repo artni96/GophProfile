@@ -13,6 +13,7 @@ import (
 	"github.com/artni96/GophProfile/internal/config"
 	"github.com/artni96/GophProfile/internal/handlers/avatars"
 	"github.com/artni96/GophProfile/internal/handlers/health"
+	"github.com/artni96/GophProfile/internal/handlers/users"
 	avatarsrepo "github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/internal/server"
 	avatarsserv "github.com/artni96/GophProfile/internal/services/avatars"
@@ -96,6 +97,9 @@ func (a *App) initRouter(ctx context.Context) error {
 
 	avatarRouter := avatars.AvatarRouter(ctx, a.Service)
 	a.router.Mount("/api/v1/avatars", avatarRouter)
+
+	userAvatarRouter := users.UserAvatarRouter(ctx, a.Service)
+	a.router.Mount("/api/v1/users", userAvatarRouter)
 
 	healthRouter := health.HealthRouter(ctx, a.DB, a.S3Client, a.Service, a.Logger)
 	a.router.Mount("/api/v1/health", healthRouter)

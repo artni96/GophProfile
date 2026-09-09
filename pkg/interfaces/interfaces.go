@@ -11,10 +11,11 @@ import (
 
 type RepositoryI interface {
 	Save(ctx context.Context, toUpload models.SaveAvatarRequest) (models.SaveAvatarResponse, error)
-	GetMetadata(ctx context.Context, flt models.GetAvatarMetadataFilters) (
+	GetMetadata(ctx context.Context, flt models.AvatarMetadataFilters) (
 		res models.AvatarDBEntity, thumbnails []models.GetThumbnailMetadata, err error)
 	SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error
 	UpdateStatus(ctx context.Context, status models.UpdateAvatarStatus) error
+	DeleteAvatarWithThumbnails(ctx context.Context, flt models.AvatarMetadataFilters) ([]string, error)
 }
 
 type ServiceI interface {
@@ -23,8 +24,9 @@ type ServiceI interface {
 	GetMetadata(ctx context.Context, id uuid.UUID) (models.GetAvatarMetadata, error)
 	SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error
 	UploadThumbnailsToS3(ctx context.Context, msg models.Message) error
-	Get(ctx context.Context, flt models.GetAvatarMetadataFilters, dimensions string) (
+	Get(ctx context.Context, flt models.AvatarMetadataFilters, dimensions string) (
 		res models.GetAvatarResponse, err error)
+	Delete(ctx context.Context, flt models.AvatarMetadataFilters) error
 }
 
 type S3I interface {
@@ -33,6 +35,7 @@ type S3I interface {
 	Check() (bool, error)
 	GetAddr() string
 	GetBucketName() string
+	Delete(ctx context.Context, objectKey string) error
 }
 
 type BrokerI interface {

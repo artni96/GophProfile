@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"uuid"
 
+	"github.com/artni96/GophProfile/internal/handlers"
 	"github.com/artni96/GophProfile/internal/models"
 	avatarsrepo "github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/pkg/interfaces"
@@ -19,16 +20,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
-
-var (
-	unsupportedFormatResponse = []byte(`{"error": "Invalid file format","details":"Supported formats: jpeg, png, webp"}`)
-	fileTooLargeResponse      = []byte(`{"error": "File too large","max_size": 10485760}`)
-	response500               = []byte(`{"error": "Internal Server Error"}`)
-)
-
-func errMsg(msg string) []byte {
-	return []byte(fmt.Sprintf(`{"error":"%s"}`, msg))
-}
 
 type AvatarHandler struct {
 	Service interfaces.ServiceI
@@ -52,13 +43,13 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errMsg("no image in form"))
+		w.Write(handlers.ErrMsg("no image in form"))
 		return
 	}
 	userID := r.Header.Get("X-User-Id")
 	if userID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errMsg("no user id in header"))
+		w.Write(handlers.ErrMsg("no user id in header"))
 		return
 	}
 
@@ -66,13 +57,13 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, avatars.ErrExceededSize) {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
-			w.Write(fileTooLargeResponse)
+			w.Write(handlers.FileTooLargeResponse)
 		} else if errors.Is(err, avatars.ErrUnsupportedFormat) {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(unsupportedFormatResponse)
+			w.Write(handlers.UnsupportedFormatResponse)
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(response500)
+			w.Write(handlers.Response500)
 		}
 		return
 	}
@@ -80,7 +71,7 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	bytesRes, err := json.Marshal(res)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(response500)
+		w.Write(handlers.Response500)
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write(bytesRes)
@@ -92,22 +83,22 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	avatarID, err := uuid.Parse(strAvatarID)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write(errMsg("Avatar not found"))
+		w.Write(handlers.ErrMsg("Avatar not found"))
 		return
 	}
 	size := r.URL.Query().Get("size")
-	flt := models.GetAvatarMetadataFilters{
+	flt := models.AvatarMetadataFilters{
 		ID: avatarID,
 	}
 	res, err := h.Service.Get(h.ctx, flt, size)
 	if err != nil {
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write(errMsg("Avatar not found"))
+			w.Write(handlers.ErrMsg("Avatar not found"))
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(response500)
+		w.Write(handlers.Response500)
 		return
 	}
 	w.Header().Set("Content-Type", res.MimeType)
@@ -118,7 +109,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	avatarID := chi.URLParam(r, "avatarID")
 	if avatarID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errMsg("failed to parse avatar_id"))
+		w.Write(handlers.ErrMsg("failed to parse avatar_id"))
 		return
 	}
 	parsedAvatarID := uuid.MustParse(avatarID)
@@ -126,27 +117,65 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
-			w.Write(errMsg(fmt.Sprintf("avatar with id %s not found", avatarID)))
+			w.Write(handlers.ErrMsg(fmt.Sprintf("avatar with id %s not found", avatarID)))
 			return
 		}
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(response500)
+		w.Write(handlers.Response500)
 		return
 	}
 	bytesRes, err := json.Marshal(res)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(response500)
+		w.Write(handlers.Response500)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(bytesRes)
 }
 
+func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	avatarID := chi.URLParam(r, "avatarID")
+	if avatarID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(handlers.ErrMsg("failed to parse avatar_id"))
+		return
+	}
+	userID := r.Header.Get("X-User-Id")
+	if userID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(handlers.ErrMsg("no user id in header"))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	parsedAvatarID := uuid.MustParse(avatarID)
+	flt := models.AvatarMetadataFilters{
+		ID:     parsedAvatarID,
+		UserID: userID,
+	}
+	err := h.Service.Delete(h.ctx, flt)
+	if err != nil {
+		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write(handlers.ErrMsg("Avatar not found"))
+		}
+		if errors.Is(err, avatarsrepo.ErrNotOwner) {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write(handlers.Response403)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(handlers.Response500)
+		}
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func AvatarRouter(ctx context.Context, service interfaces.ServiceI) chi.Router {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.Logger)
 	handler := NewAvatarHandler(ctx, service)
 
 	r.Route("/", func(r chi.Router) {
@@ -157,6 +186,7 @@ func AvatarRouter(ctx context.Context, service interfaces.ServiceI) chi.Router {
 		r.Post("/", handler.Upload)
 		r.Get("/{avatar_id}", handler.Get)
 		r.Get("/{avatarID}/metadata", handler.GetMetadata)
+		r.Delete("/{avatarID}", handler.Delete)
 	})
 	return r
 }

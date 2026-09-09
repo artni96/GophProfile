@@ -56,7 +56,7 @@ type GetAvatarMetadata struct {
 	Thumbnails []GetThumbnailMetadata `json:"thumbnails"`
 }
 
-type GetAvatarMetadataFilters struct {
+type AvatarMetadataFilters struct {
 	ID     uuid.UUID
 	UserID string
 }

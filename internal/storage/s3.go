@@ -97,3 +97,16 @@ func (s *S3Client) GetAddr() string {
 func (s *S3Client) GetBucketName() string {
 	return s.BucketName
 }
+
+func (s *S3Client) Delete(ctx context.Context, objectKey string) error {
+	_, err := s.client.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(s.BucketName),
+		Key:    aws.String(objectKey),
+	})
+	if err != nil {
+		s.logger.Debug("failed to delete object", zap.Error(err))
+		return fmt.Errorf("failed to delete object: %v", err)
+	}
+	s.logger.Debug(fmt.Sprintf("Successfully deleted %s/%s", s.BucketName, objectKey))
+	return nil
+}

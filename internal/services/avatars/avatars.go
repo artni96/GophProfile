@@ -122,7 +122,7 @@ func (s *Service) Save(
 }
 
 func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.GetAvatarMetadata, err error) {
-	flt := models.GetAvatarMetadataFilters{
+	flt := models.AvatarMetadataFilters{
 		ID: id,
 	}
 	original, thumbnails, err := s.repo.GetMetadata(ctx, flt)
@@ -153,7 +153,7 @@ func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.Get
 	return res, nil
 }
 
-func (s *Service) Get(ctx context.Context, flt models.GetAvatarMetadataFilters, dimensions string) (
+func (s *Service) Get(ctx context.Context, flt models.AvatarMetadataFilters, dimensions string) (
 	res models.GetAvatarResponse, err error) {
 	md, thumbnails, err := s.repo.GetMetadata(ctx, flt)
 	if err != nil {
@@ -254,6 +254,20 @@ func (s *Service) UpdateStatus(ctx context.Context, status models.UpdateAvatarSt
 	err := s.repo.UpdateStatus(ctx, status)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (s *Service) Delete(ctx context.Context, flt models.AvatarMetadataFilters) error {
+	s3keys, err := s.repo.DeleteAvatarWithThumbnails(ctx, flt)
+	if err != nil {
+		return err
+	}
+	for _, s3key := range s3keys {
+		err = s.s3Client.Delete(ctx, s3key)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
