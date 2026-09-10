@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/artni96/GophProfile/internal/handlers/middlewares"
 	"github.com/artni96/GophProfile/internal/models"
 	"github.com/artni96/GophProfile/internal/services/avatars"
 	"github.com/artni96/GophProfile/internal/storage"
@@ -14,6 +15,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
+
+	_ "github.com/artni96/GophProfile/api/swagger"
 )
 
 type Handler struct {
@@ -34,6 +37,17 @@ func NewHealthHandler(ctx context.Context, db *sqlx.DB, s3Client *storage.S3Clie
 	}
 }
 
+// Check godoc
+//
+//	@Summary		App services health check
+//	@Description	Check status of minio, database and rabbitmq.
+//	@Tags			health
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	Each	of	the	services	works	correctly
+//	@Failure		500
+//	@Failure		503	{object}	models.HealthResponse
+//	@Router			/health [get]
 func (h *Handler) Check(w http.ResponseWriter, r *http.Request) {
 	var res models.HealthResponse
 	if err := h.db.PingContext(h.ctx); err != nil {
@@ -73,8 +87,13 @@ func (h *Handler) Check(w http.ResponseWriter, r *http.Request) {
 
 func HealthRouter(ctx context.Context, db *sqlx.DB, s3Client *storage.S3Client, service *avatars.Service, logger *zap.Logger) chi.Router {
 	r := chi.NewRouter()
+
 	r.Use(middleware.RequestID)
-	r.Use(middleware.Recoverer)
+	r.Use(middleware.Logger)
+	r.Use(middlewares.PanicRecoverer(logger))
+	r.Use(middleware.RequestID)
+	r.Use(middlewares.GzipMiddleware)
+
 	handler := NewHealthHandler(ctx, db, s3Client, service, logger)
 
 	r.Route("/", func(r chi.Router) {

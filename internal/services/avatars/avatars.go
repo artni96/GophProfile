@@ -122,7 +122,7 @@ func (s *Service) Save(
 }
 
 func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.GetAvatarMetadata, err error) {
-	flt := models.AvatarMetadataFilters{
+	flt := models.AvatarFilters{
 		ID: id,
 	}
 	original, thumbnails, err := s.repo.GetMetadata(ctx, flt)
@@ -153,7 +153,39 @@ func (s *Service) GetMetadata(ctx context.Context, id uuid.UUID) (res models.Get
 	return res, nil
 }
 
-func (s *Service) Get(ctx context.Context, flt models.AvatarMetadataFilters, dimensions string) (
+func (s *Service) GetMetadataList(ctx context.Context, flt models.AvatarFilters) (
+	res models.GetUserAvatarsListResponse, err error) {
+	originals, thumbnails, err := s.repo.GetMetadataList(ctx, flt)
+	if err != nil {
+		return res, err
+	}
+	thumbnailsMd := map[uuid.UUID][]models.GetThumbnailMetadata{}
+	for _, thumbnail := range thumbnails {
+		thumbnail.S3Key = fmt.Sprintf("%s/%s/%s", s.s3Client.GetAddr(), s.s3Client.GetBucketName(), thumbnail.S3Key)
+		thumbnailsMd[thumbnail.AvatarID] = append(thumbnailsMd[thumbnail.AvatarID], thumbnail)
+	}
+	avatarsMd := make([]models.GetAvatarMetadata, 0, len(originals))
+	for _, original := range originals {
+		i := models.GetAvatarMetadata{}
+		i.ID = original.ID
+		i.FileName = original.FileName
+		i.MimeType = original.MimeType
+		i.Size = original.Size
+		i.CreatedAt = original.CreatedAt
+		i.UpdatedAt = *original.UpdatedAt
+		dimensions := models.Dimensions{
+			Width:  original.Width,
+			Height: original.Height,
+		}
+		i.Dimensions = dimensions
+		i.Thumbnails = thumbnailsMd[i.ID]
+		avatarsMd = append(avatarsMd, i)
+	}
+	res.Avatars = avatarsMd
+	return res, nil
+}
+
+func (s *Service) Get(ctx context.Context, flt models.AvatarFilters, dimensions string) (
 	res models.GetAvatarResponse, err error) {
 	md, thumbnails, err := s.repo.GetMetadata(ctx, flt)
 	if err != nil {
@@ -258,16 +290,30 @@ func (s *Service) UpdateStatus(ctx context.Context, status models.UpdateAvatarSt
 	return nil
 }
 
-func (s *Service) Delete(ctx context.Context, flt models.AvatarMetadataFilters) error {
+func (s *Service) Delete(ctx context.Context, flt models.AvatarFilters) error {
 	s3keys, err := s.repo.DeleteAvatarWithThumbnails(ctx, flt)
 	if err != nil {
 		return err
 	}
 	for _, s3key := range s3keys {
-		err = s.s3Client.Delete(ctx, s3key)
-		if err != nil {
-			return err
+		brokerMessage := models.Message{
+			UserID: flt.UserID,
+			Action: models.Remove,
+			ID:     uuid.New(),
+			S3Key:  s3key,
 		}
+		err = s.Broker.Produce(ctx, brokerMessage)
+		if err != nil {
+			return fmt.Errorf("failed to send message to the broker: %w", err)
+		}
+	}
+	return nil
+}
+
+func (s *Service) DeleteFromS3(ctx context.Context, s3key string) error {
+	err := s.s3Client.Delete(ctx, s3key)
+	if err != nil {
+		return err
 	}
 	return nil
 }

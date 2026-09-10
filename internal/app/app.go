@@ -21,9 +21,11 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jmoiron/sqlx"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
+	_ "github.com/artni96/GophProfile/api/swagger"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
@@ -95,10 +97,12 @@ func (a *App) applyMigrations() error {
 func (a *App) initRouter(ctx context.Context) error {
 	a.router = chi.NewRouter()
 
-	avatarRouter := avatars.AvatarRouter(ctx, a.Service)
+	a.router.Get("/swagger/*", httpSwagger.WrapHandler)
+
+	avatarRouter := avatars.AvatarRouter(ctx, a.Service, a.Logger)
 	a.router.Mount("/api/v1/avatars", avatarRouter)
 
-	userAvatarRouter := users.UserAvatarRouter(ctx, a.Service)
+	userAvatarRouter := users.UserAvatarRouter(ctx, a.Service, a.Logger)
 	a.router.Mount("/api/v1/users", userAvatarRouter)
 
 	healthRouter := health.HealthRouter(ctx, a.DB, a.S3Client, a.Service, a.Logger)

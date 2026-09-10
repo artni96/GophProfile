@@ -63,7 +63,7 @@ func (r *Repository) Save(ctx context.Context, avatar models.SaveAvatarRequest) 
 	return res, nil
 }
 
-func (r *Repository) GetMetadata(ctx context.Context, flt models.AvatarMetadataFilters) (
+func (r *Repository) GetMetadata(ctx context.Context, flt models.AvatarFilters) (
 	res models.AvatarDBEntity, thumbnails []models.GetThumbnailMetadata, err error) {
 	tx, err := r.db.BeginTxx(ctx, nil)
 	if err != nil {
@@ -97,7 +97,7 @@ func (r *Repository) GetMetadata(ctx context.Context, flt models.AvatarMetadataF
 	}
 
 	thumbnailsStmt := `
-		SELECT dimensions, s3_key 
+		SELECT avatar_id, dimensions, s3_key 
 		FROM avatar_thumbnails 
 		WHERE avatar_id = $1;`
 	err = tx.Select(&thumbnails, thumbnailsStmt, res.ID)
@@ -110,6 +110,37 @@ func (r *Repository) GetMetadata(ctx context.Context, flt models.AvatarMetadataF
 		return res, nil, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return res, thumbnails, nil
+}
+
+func (r *Repository) GetMetadataList(ctx context.Context, flt models.AvatarFilters) (
+	originals []models.AvatarDBEntity, thumbnails []models.GetThumbnailMetadata, err error) {
+	originalStmt := `
+		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at, s3_key 
+		FROM avatars
+		WHERE user_id = $1 AND deleted_at IS NULL
+		ORDER BY created_at DESC
+		LIMIT $2 
+		OFFSET $3;`
+	err = r.db.SelectContext(ctx, &originals, originalStmt, flt.UserID, flt.Limit, flt.Offset)
+	if err != nil {
+		r.logger.Debug("failed to get avatars", zap.String("user_id", flt.UserID), zap.Error(err))
+		return nil, nil, fmt.Errorf("failed to get avatars: %w", err)
+	}
+	var originalsIDs []uuid.UUID
+	for _, original := range originals {
+		originalsIDs = append(originalsIDs, original.ID)
+	}
+	thumbnailsStmt := `
+		SELECT avatar_id, dimensions, s3_key 
+		FROM avatar_thumbnails 
+		WHERE avatar_id = ANY($1);`
+	err = r.db.SelectContext(ctx, &thumbnails, thumbnailsStmt, originalsIDs)
+	if err != nil {
+		r.logger.Debug("failed to get thumbnails", zap.Error(err))
+		return nil, nil, fmt.Errorf("failed to get thumbnails: %w", err)
+	}
+	return originals, thumbnails, nil
+
 }
 
 func (r *Repository) SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error {
@@ -131,7 +162,7 @@ type AvatarIDs3keyData struct {
 	UserID string    `db:"user_id"`
 }
 
-func (r *Repository) DeleteAvatarWithThumbnails(ctx context.Context, flt models.AvatarMetadataFilters) (
+func (r *Repository) DeleteAvatarWithThumbnails(ctx context.Context, flt models.AvatarFilters) (
 	[]string, error) {
 	s3Keys := make([]string, 0, 3)
 	thumbnailsS3Keys := make([]string, 0, 2)

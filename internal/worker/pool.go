@@ -92,18 +92,37 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 				wp.logger.Debug("failed to prepare message", zap.Error(err))
 				continue
 			}
-			var isUploaded bool
-			for i := 0; i < 3; i++ {
-				err = wp.service.UploadThumbnailsToS3(ctx, msg)
-				if err != nil {
-					wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
-					continue
+			var isSuccess bool
+			switch msg.Action {
+			case models.Upload:
+				for i := 0; i < 3; i++ {
+					err = wp.service.UploadThumbnailsToS3(ctx, msg)
+					if err != nil {
+						wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
+						continue
+					}
+					isSuccess = true
+					break
 				}
-				isUploaded = true
-				break
+			case models.Remove:
+				for i := 0; i < 3; i++ {
+					err = wp.service.DeleteFromS3(ctx, msg.S3Key)
+					if err != nil {
+						wp.logger.Debug("worker process delete failed", zap.Error(err))
+						continue
+					}
+					isSuccess = true
+					break
+				}
 			}
-			if !isUploaded {
-				wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
+			if !isSuccess {
+				switch msg.Action {
+				case models.Upload:
+					wp.logger.Debug("failed to upload thumbnail", zap.String("s3key", msg.S3Key), zap.Error(err))
+				case models.Remove:
+					wp.logger.Debug("failed to delete object", zap.Error(err))
+				}
+
 				if err = d.Nack(false, false); err != nil {
 					wp.logger.Debug("worker process nack failed", zap.Error(err))
 				} else {
@@ -113,6 +132,7 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 				}
 				continue
 			}
+
 			err = d.Ack(false)
 			if err != nil {
 				wp.logger.Error("worker process ack failed", zap.Error(err))
@@ -172,17 +192,40 @@ func (wp *Pool) worker(ctx context.Context, workerID int) error {
 				continue
 			}
 
-			var isUploaded bool
-			for i := 0; i < 3; i++ {
-				err = wp.service.UploadThumbnailsToS3(ctx, msg)
-				if err != nil {
-					wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
-					continue
+			//var isUploaded bool
+			//for i := 0; i < 3; i++ {
+			//	err = wp.service.UploadThumbnailsToS3(ctx, msg)
+			//	if err != nil {
+			//		wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
+			//		continue
+			//	}
+			//	isUploaded = true
+			//	break
+			//}
+			var isSuccess bool
+			switch msg.Action {
+			case models.Upload:
+				for i := 0; i < 3; i++ {
+					err = wp.service.UploadThumbnailsToS3(ctx, msg)
+					if err != nil {
+						wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
+						continue
+					}
+					isSuccess = true
+					break
 				}
-				isUploaded = true
-				break
+			case models.Remove:
+				for i := 0; i < 3; i++ {
+					err = wp.service.DeleteFromS3(ctx, msg.S3Key)
+					if err != nil {
+						wp.logger.Debug("worker process delete failed", zap.Error(err))
+						continue
+					}
+					isSuccess = true
+					break
+				}
 			}
-			if !isUploaded {
+			if !isSuccess {
 				wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
 				if err = d.Nack(false, false); err != nil {
 					wp.logger.Debug("worker process nack failed", zap.Error(err))
@@ -225,21 +268,38 @@ func (wp *Pool) prepareMsg(d amqp.Delivery) (msg models.Message, err error) {
 	avatarID := uuid.MustParse(strAvatarID)
 	action := d.Headers["action"].(string)
 	userID := d.Headers["user_id"].(string)
-	if msgID != uuid.Nil() {
-		msg.ID = msgID
-	} else {
-		errs = append(errs, fmt.Sprintf("failed to parse message id from amqp.delivery, messageID: %s", d.MessageId))
-	}
-	if avatarID != uuid.Nil() {
-		msg.AvatarID = avatarID
-	} else {
-		errs = append(errs, fmt.Sprintf("failed to parse avatar id from amqp.delivery, messageID: %s", d.MessageId))
-	}
+	s3Key := d.Headers["s3_key"].(string)
 	if action != "" {
 		msg.Action = models.ActionType(action)
 	} else {
 		errs = append(errs, fmt.Sprintf("failed to parse action from amqp.delivery, messageID: %s", d.MessageId))
 	}
+
+	if msgID != uuid.Nil() {
+		msg.ID = msgID
+	} else {
+		errs = append(errs, fmt.Sprintf("failed to parse message id from amqp.delivery, messageID: %s", d.MessageId))
+	}
+
+	if avatarID != uuid.Nil() {
+		msg.AvatarID = avatarID
+	} else {
+		errs = append(errs, fmt.Sprintf("failed to parse avatar id from amqp.delivery, messageID: %s", d.MessageId))
+	}
+
+	if action != "" {
+		msg.Action = models.ActionType(action)
+	} else {
+		errs = append(errs, fmt.Sprintf("failed to parse action from amqp.delivery, messageID: %s", d.MessageId))
+	}
+	if models.ActionType(action) == models.Remove {
+		if s3Key != "" {
+			msg.S3Key = s3Key
+		} else {
+			errs = append(errs, fmt.Sprintf("failed to parse s3_key from amqp.delivery, messageID: %s", d.MessageId))
+		}
+	}
+
 	msg.Body = d.Body
 	msg.UserID = userID
 	if len(errs) > 0 {

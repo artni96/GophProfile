@@ -127,6 +127,7 @@ func (b *Broker) Produce(ctx context.Context, m models.Message) error {
 			"avatar_id": m.AvatarID.String(),
 			"user_id":   m.UserID,
 			"action":    string(m.Action),
+			"s3_key":    m.S3Key,
 		},
 		MessageId: m.ID.String(),
 	})

@@ -46,7 +46,7 @@ type AvatarDBEntity struct {
 
 type GetAvatarMetadata struct {
 	ID         uuid.UUID              `json:"id"`
-	UserID     string                 `json:"user_id"`
+	UserID     string                 `json:"user_id,omitempty"`
 	FileName   string                 `json:"file_name"`
 	MimeType   string                 `json:"mime_type"`
 	Size       uint64                 `json:"size"`
@@ -56,9 +56,11 @@ type GetAvatarMetadata struct {
 	Thumbnails []GetThumbnailMetadata `json:"thumbnails"`
 }
 
-type AvatarMetadataFilters struct {
+type AvatarFilters struct {
 	ID     uuid.UUID
 	UserID string
+	Limit  uint64
+	Offset uint64
 }
 
 type GetAvatarResponse struct {
@@ -80,6 +82,7 @@ type UpdateAvatarStatus struct {
 }
 
 type GetThumbnailMetadata struct {
-	Dimensions string `json:"size" db:"dimensions"`
-	S3Key      string `json:"url" db:"s3_key"`
+	AvatarID   uuid.UUID `json:"-" db:"avatar_id"`
+	Dimensions string    `json:"size" db:"dimensions"`
+	S3Key      string    `json:"url" db:"s3_key"`
 }

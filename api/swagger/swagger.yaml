@@ -1,0 +1,299 @@
+basePath: /api/v1
+definitions:
+  models.Dimensions:
+    properties:
+      height:
+        type: integer
+      width:
+        type: integer
+    type: object
+  models.GetAvatarMetadata:
+    properties:
+      created_at:
+        type: string
+      dimensions:
+        $ref: '#/definitions/models.Dimensions'
+      file_name:
+        type: string
+      id:
+        type: string
+      mime_type:
+        type: string
+      size:
+        type: integer
+      thumbnails:
+        items:
+          $ref: '#/definitions/models.GetThumbnailMetadata'
+        type: array
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.GetThumbnailMetadata:
+    properties:
+      size:
+        type: string
+      url:
+        type: string
+    type: object
+  models.GetUserAvatarsListResponse:
+    properties:
+      avatars:
+        items:
+          $ref: '#/definitions/models.GetAvatarMetadata'
+        type: array
+    type: object
+  models.HealthResponse:
+    properties:
+      broker:
+        type: boolean
+      database:
+        type: boolean
+      s3:
+        type: boolean
+    type: object
+  models.SaveAvatarResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      url:
+        type: string
+      user_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Service for user avatar management
+  title: GophProfile
+  version: "1.0"
+paths:
+  /avatars:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploading new user avatar with thumbnails (100x100, 300x300)
+      parameters:
+      - description: user id
+        in: header
+        name: X-User-Id
+        required: true
+        type: integer
+      - description: file binary data
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.SaveAvatarResponse'
+        "400":
+          description: Bad Request
+        "413":
+          description: Request Entity Too Large
+        "500":
+          description: Internal Server Error
+      summary: Uploading new user avatar
+      tags:
+      - avatars
+  /avatars/{avatar_id}:
+    delete:
+      consumes:
+      - application/json
+      description: removes user avatar by id
+      parameters:
+      - description: avatar id
+        in: path
+        name: avatar_id
+        required: true
+        type: string
+      - description: user id
+        in: header
+        name: X-User-Id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Removing user avatar by id
+      tags:
+      - avatars
+    get:
+      consumes:
+      - application/json
+      description: returns user avatar by id (binary)
+      parameters:
+      - description: avatar id
+        in: path
+        name: avatar_id
+        required: true
+        type: string
+      - description: size
+        enum:
+        - original
+        - 100x100
+        - 300x300
+        in: path
+        name: size
+        type: string
+      produces:
+      - image/png
+      - image/jpeg
+      - image/webp
+      responses:
+        "200":
+          description: Binary image data
+          schema:
+            type: string
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Providing user avatar by id
+      tags:
+      - avatars
+  /avatars/{avatar_id}/metadata:
+    get:
+      consumes:
+      - application/json
+      description: returns user avatar metadata by id
+      parameters:
+      - description: avatar id
+        in: path
+        name: avatar_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: avatar metadata
+          schema:
+            $ref: '#/definitions/models.GetAvatarMetadata'
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Providing user avatar metadata by id
+      tags:
+      - avatars
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Check status of minio, database and rabbitmq.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: Each
+        "500":
+          description: Internal Server Error
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/models.HealthResponse'
+      summary: App services health check
+      tags:
+      - health
+  /users/{user_id}/avatar:
+    delete:
+      description: removes last user avatar
+      parameters:
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: removes last user avatar
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: returns binary data of last user avatar
+      parameters:
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - image/png
+      - image/jpeg
+      - image/webp
+      responses:
+        "200":
+          description: Binary image data
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Providing last user avatar
+      tags:
+      - users
+  /users/{user_id}/avatars:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: limit
+        in: query
+        name: limit
+        type: integer
+      - description: offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.GetUserAvatarsListResponse'
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: Returns list of user avatars metadata
+      tags:
+      - users
+swagger: "2.0"

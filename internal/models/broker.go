@@ -15,4 +15,5 @@ type Message struct {
 	UserID   string
 	Body     []byte
 	Action   ActionType
+	S3Key    string
 }
