@@ -133,6 +133,7 @@ func (a *App) InitDependencies() {
 }
 
 func (a *App) LaunchServer() {
+	a.Logger.Debug("starting server", zap.String("addr", a.Cfg.ServerAddr))
 	a.Eg.Go(func() error {
 		return a.Server.Run()
 	})
@@ -159,18 +160,22 @@ func (a *App) Shutdown(ctx context.Context, gsCancel context.CancelFunc) {
 func (a *App) initS3Client(cfg *config.Config, logger *zap.Logger) error {
 	s3client, err := storage.NewS3Client(cfg, logger, a.Cfg.S3.BucketName)
 	if err != nil {
+		logger.Debug("failed to initialize minio server", zap.Error(err))
 		return err
 	}
 	a.S3Client = s3client
+	logger.Debug("minio server initialized successfully")
 	return nil
 }
 
 func (a *App) initBroker(logger *zap.Logger) error {
 	broker, err := broker.NewBroker(logger)
 	if err != nil {
+		logger.Debug("failed to initialize rabbitmq server", zap.Error(err))
 		return err
 	}
 	a.Broker = broker
+	logger.Debug("rabbitmq server initialized successfully")
 	return nil
 }
 
@@ -182,7 +187,8 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.Logger) (*App, 
 	}
 	err := app.InitDBConn(ctx)
 	if err != nil {
-		app.Logger.Fatal("failed to initialize database connection", zap.Error(err))
+		app.Logger.Debug("failed to initialize database connection", zap.Error(err))
+		return nil, fmt.Errorf("failed to initialize database connection: %w", err)
 	}
 	err = app.initS3Client(cfg, app.Logger)
 	if err != nil {
@@ -195,7 +201,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.Logger) (*App, 
 	app.InitDependencies()
 	err = app.InitServer(ctx)
 	if err != nil {
-		app.Logger.Fatal("failed to initialize server", zap.Error(err))
+		app.Logger.Debug("failed to initialize server", zap.Error(err))
 		return nil, fmt.Errorf("failed to initialize server: %w", err)
 	}
 

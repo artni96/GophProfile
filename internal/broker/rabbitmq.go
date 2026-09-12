@@ -50,16 +50,30 @@ func (b *Broker) Init() error {
 	var errs []string
 	user, ok := os.LookupEnv("RABBITMQ_USER")
 	if !ok {
+		b.logger.Debug("RABBITMQ_USER environment variable is not set")
 		errs = append(errs, "RABBITMQ_USER is required")
 	}
 	password, ok := os.LookupEnv("RABBITMQ_PASSWORD")
 	if !ok {
+		b.logger.Debug("RABBITMQ_PASSWORD environment variable is not set")
 		errs = append(errs, "RABBITMQ_PASSWORD is required")
 	}
+	host, ok := os.LookupEnv("RABBITMQ_HOST")
+	if !ok {
+		b.logger.Debug("RABBITMQ_HOST environment variable is not set")
+		errs = append(errs, "RABBITMQ_HOST is required")
+	}
+	port, ok := os.LookupEnv("RABBITMQ_INTERNAL_PORT")
+	if !ok {
+		b.logger.Debug("RABBITMQ_PORT environment variable is not set")
+		errs = append(errs, "RABBITMQ_PORT environment variable is required")
+	}
 	if len(errs) > 0 {
+
+		b.logger.Debug("failed to initialize RabbitMQ broker: no required environment variables found")
 		return errors.New(strings.Join(errs, "\n"))
 	}
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@localhost:5672/", user, password))
+	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s", user, password, host, port))
 	if err != nil {
 		return err
 	}

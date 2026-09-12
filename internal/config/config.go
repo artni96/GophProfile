@@ -32,7 +32,9 @@ type dbConfig struct {
 
 type s3Config struct {
 	Region            string `env:"AWS_REGION"`
-	Endpoint          string `env:"AWS_ENDPOINT"`
+	Host              string `env:"MINIO_HOST"`
+	Port              string `env:"MINIO_INTERNAL_PORT"`
+	Endpoint          string
 	S3ForcePathStyle  *bool
 	Credentials       *credentials.Credentials
 	AccessKey         string `env:"AWS_ACCESS_KEY"`
@@ -49,6 +51,11 @@ func newS3Config() (*s3Config, error) {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}
 
+	if cfg.Host == "" || cfg.Port == "" {
+		return nil, errors.New("missing required env vars: AWS_HOST, MINIO_INTERNAL_PORT")
+	}
+	cfg.Endpoint = fmt.Sprintf("http://%s:%s", cfg.Host, cfg.Port)
+
 	cfg.S3ForcePathStyle = aws.Bool(true)
 	cfg.Credentials = credentials.NewStaticCredentials(cfg.AccessKey, cfg.SecretKey, "")
 	return cfg, nil
@@ -62,7 +69,11 @@ func NewConfig() (*Config, error) {
 	declaredFlags := make(map[string]bool)
 	var errs []string
 
-	fs.StringVar(&cfg.ServerAddr, "a", ":8080", "server address")
+	var sHost string
+	var sPort uint64
+	fs.StringVar(&sHost, "ah", "", "server host")
+	fs.Uint64Var(&sPort, "ap", 0, "server port")
+
 	fs.StringVar(&dbCfg.DBName, "dn", "", "database name")
 	fs.StringVar(&dbCfg.DBHost, "dh", "", "database host")
 	fs.Uint64Var(&dbCfg.DBPort, "dp", 0, "database port")
@@ -80,23 +91,40 @@ func NewConfig() (*Config, error) {
 		return nil, fmt.Errorf("failed to load .env files")
 	}
 
-	if !declaredFlags["a"] {
-		envSerAddr, ok := os.LookupEnv("SERVER_ADDR")
+	if !declaredFlags["ah"] {
+		envSHost, ok := os.LookupEnv("SERVER_HOST")
 		if ok {
-			cfg.ServerAddr = envSerAddr
+			sHost = envSHost
 		} else {
-			errs = append(errs, "SERVER_ADDR is required")
+			errs = append(errs, "SERVER_HOST is required")
 		}
 	}
 
-	if !declaredFlags["dn"] {
-		envDBName, ok := os.LookupEnv("DB_NAME")
+	if !declaredFlags["ah"] {
+		envSHost, ok := os.LookupEnv("SERVER_HOST")
 		if ok {
-			dbCfg.DBName = envDBName
-			cfg.DBName = envDBName
+			sHost = envSHost
 		} else {
-			errs = append(errs, "DB_NAME is required")
+			errs = append(errs, "SERVER_HOST is required")
 		}
+	}
+
+	if !declaredFlags["ap"] {
+		envSPort, ok := os.LookupEnv("SERVER_INTERNAL_PORT")
+		if ok {
+			convertSPort, err := strconv.ParseUint(envSPort, 10, 64)
+			if err != nil {
+				errs = append(errs, "failed to parse SERVER_INTERNAL_PORT")
+			} else {
+				sPort = convertSPort
+			}
+		} else {
+			errs = append(errs, "SERVER_INTERNAL_PORT is required")
+		}
+	}
+
+	if sHost != "" && sPort != 0 {
+		cfg.ServerAddr = fmt.Sprintf("%s:%d", sHost, sPort)
 	}
 
 	if !declaredFlags["dh"] {
@@ -109,11 +137,11 @@ func NewConfig() (*Config, error) {
 	}
 
 	if !declaredFlags["dp"] {
-		envDBPort, ok := os.LookupEnv("DB_PORT")
+		envDBPort, ok := os.LookupEnv("DB_INTERNAL_PORT")
 		if ok {
 			convertDBPort, err := strconv.ParseUint(envDBPort, 10, 64)
 			if err != nil {
-				errs = append(errs, "failed to parse DB_PORT")
+				errs = append(errs, "failed to parse DB_INTERNAL_PORT")
 			} else {
 				dbCfg.DBPort = convertDBPort
 			}
@@ -137,6 +165,15 @@ func NewConfig() (*Config, error) {
 			dbCfg.DBPassword = envDBPassword
 		} else {
 			errs = append(errs, "DB_PASSWORD is required")
+		}
+	}
+
+	if !declaredFlags["dn"] {
+		envDBName, ok := os.LookupEnv("DB_NAME")
+		if ok {
+			dbCfg.DBName = envDBName
+		} else {
+			errs = append(errs, "DB_NAME is required")
 		}
 	}
 

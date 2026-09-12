@@ -1,36 +1,81 @@
-version: '3.8'
-
 services:
+  db:
+    image: postgres:latest
+    restart: always
+    container_name: gp-db
+
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_EXTERNAL_PORT}:${DB_INTERNAL_PORT}"
+    networks:
+      - gp-network
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
   minio:
     image: minio/minio:latest
     container_name: minio-server
+    restart: always
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_EXTERNAL_PORT}:${MINIO_INTERNAL_PORT}"
+      - "${MINIO_UI_EXTERNAL_PORT}:${MINIO_UI_INTERNAL_PORT}"
     volumes:
       - minio_data:/data
     environment:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_KEY}
-    command: server /data --console-address ":9001"
+    command: server /data --console-address ":${MINIO_UI_INTERNAL_PORT}"
+    networks:
+      - gp-network
 
   rabbitmq:
     image: rabbitmq:3.12-management
     container_name: rabbitmq
+    restart: always
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_EXTERNAL_PORT}:${RABBITMQ_INTERNAL_PORT}"
+      - "${RABBITMQ_UI_EXTERNAL_PORT}:${RABBITMQ_UI_INTERNAL_PORT}"
     environment:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+sbwt none +sbwtdcpu none +sbwtdio none"
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - gp-network
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  server:
+    image: artni96/gp-server-image:1.0
+    container_name: gp-server
+    ports:
+      - "${SERVER_EXTERNAL_PORT}:${SERVER_INTERNAL_PORT}"
+    depends_on:
+      - db
+      - minio
+      - rabbitmq
+    networks:
+      - gp-network
+
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+
 volumes:
   minio_data:
   rabbitmq_data:
+  postgres_data:
+
+networks:
+  gp-network:
+    driver: bridge
+    name: gp-network
