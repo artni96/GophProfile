@@ -27,6 +27,18 @@ func NewRepository(db *sqlx.DB, logger *zap.Logger) *Repository {
 	}
 }
 
+func (r *Repository) BeginTx(ctx context.Context) (*sqlx.Tx, error) {
+	return r.db.BeginTxx(ctx, nil)
+}
+
+func (r *Repository) CommitTx(tx *sqlx.Tx) error {
+	return tx.Commit()
+}
+
+func (r *Repository) RollbackTx(tx *sqlx.Tx) error {
+	return tx.Rollback()
+}
+
 func (r *Repository) Save(ctx context.Context, avatar models.SaveAvatarRequest) (
 	res models.SaveAvatarResponse, err error,
 ) {
@@ -58,6 +70,11 @@ func (r *Repository) Save(ctx context.Context, avatar models.SaveAvatarRequest) 
 
 	if err = tx.Commit(); err != nil {
 		r.logger.Debug("failed to commit transaction", zap.Error(err))
+		err = tx.Rollback()
+		if err != nil {
+			r.logger.Error("failed to rollback transaction", zap.Error(err))
+			return res, fmt.Errorf("failed to rollback transaction after failure: %w", err)
+		}
 		return res, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return res, nil
@@ -72,7 +89,7 @@ func (r *Repository) GetMetadata(ctx context.Context, flt models.AvatarFilters) 
 	}
 
 	var stmt string
-	if flt.ID != uuid.Nil() && flt.UserID == "" {
+	if flt.ID != uuid.Nil() {
 		stmt = `
 		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at, s3_key 
 		FROM avatars 
@@ -82,7 +99,7 @@ func (r *Repository) GetMetadata(ctx context.Context, flt models.AvatarFilters) 
 			r.logger.Debug("failed to get avatar by id", zap.String("id", flt.ID.String()), zap.Error(err))
 			return res, nil, ErrAvatarNotFound
 		}
-	} else if flt.ID == uuid.Nil() && flt.UserID != "" {
+	} else if flt.UserID != "" {
 		stmt = `
 		SELECT id, user_id, file_name, mime_type, size_bytes, height, width, created_at, updated_at, s3_key 
 		FROM avatars 
@@ -143,14 +160,18 @@ func (r *Repository) GetMetadataList(ctx context.Context, flt models.AvatarFilte
 
 }
 
-func (r *Repository) SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error {
+func (r *Repository) SaveThumbnail(ctx context.Context, tx *sqlx.Tx, t models.SaveThumbnail) error {
 	stmt := `
 			INSERT INTO avatar_thumbnails (avatar_id, s3_key,dimensions) 
 			VALUES ($1, $2, $3);`
-	_, err := r.db.ExecContext(ctx, stmt, t.AvatarID, t.S3Key, t.Dimensions)
+	_, err := tx.ExecContext(ctx, stmt, t.AvatarID, t.S3Key, t.Dimensions)
 	if err != nil {
 		r.logger.Debug("failed to save thumbnail for avatar",
 			zap.String("id", t.AvatarID.String()), zap.String("dimensions", t.Dimensions), zap.Error(err))
+		err = r.RollbackTx(tx)
+		if err != nil {
+			return fmt.Errorf("failed to rollback transaction after failure: %w", err)
+		}
 		return fmt.Errorf("failed to save thumbnail for avatar: %w", err)
 	}
 	return nil
@@ -162,22 +183,17 @@ type AvatarIDs3keyData struct {
 	UserID string    `db:"user_id"`
 }
 
-func (r *Repository) DeleteAvatarWithThumbnails(ctx context.Context, flt models.AvatarFilters) (
+func (r *Repository) DeleteAvatarWithThumbnails(tx *sqlx.Tx, flt models.AvatarFilters) (
 	[]string, error) {
 	s3Keys := make([]string, 0, 3)
 	thumbnailsS3Keys := make([]string, 0, 2)
 	var originalAvatarData AvatarIDs3keyData
 	var originalStmt string
-	tx, err := r.db.BeginTxx(ctx, nil)
-	if err != nil {
-		r.logger.Debug("failed to begin transaction", zap.Error(err))
-		return nil, fmt.Errorf("failed to begin transaction: %w", err)
-	}
 	if flt.ID != uuid.Nil() {
 		originalStmt = `UPDATE avatars 
 						SET deleted_at = NOW() 
 						WHERE id = $1 RETURNING id, s3_key, user_id;`
-		err = tx.Get(&originalAvatarData, originalStmt, flt.ID)
+		err := tx.Get(&originalAvatarData, originalStmt, flt.ID)
 		if err != nil {
 			r.logger.Debug("failed to update avatar by id", zap.String("id", flt.ID.String()), zap.Error(err))
 			if errors.Is(err, sql.ErrNoRows) {
@@ -195,7 +211,7 @@ func (r *Repository) DeleteAvatarWithThumbnails(ctx context.Context, flt models.
 							ORDER BY created_at DESC 
 						    LIMIT 1)
 						RETURNING id, s3_key, user_id;`
-		err = tx.Get(&originalAvatarData, originalStmt, flt.UserID)
+		err := tx.Get(&originalAvatarData, originalStmt, flt.UserID)
 		if err != nil {
 			r.logger.Debug(
 				"failed to update last user avatar", zap.String("id", flt.ID.String()), zap.Error(err))
@@ -206,7 +222,7 @@ func (r *Repository) DeleteAvatarWithThumbnails(ctx context.Context, flt models.
 		}
 	}
 	if originalAvatarData.UserID != flt.UserID && flt.UserID != "" && flt.ID != uuid.Nil() {
-		err = tx.Rollback()
+		err := tx.Rollback()
 		if err != nil {
 			r.logger.Debug("failed to rollback transaction", zap.String("id", flt.ID.String()), zap.Error(err))
 			return nil, fmt.Errorf("failed to rollback transaction: %w", err)
@@ -225,7 +241,7 @@ func (r *Repository) DeleteAvatarWithThumbnails(ctx context.Context, flt models.
 		DELETE 
 		FROM avatar_thumbnails 
 		WHERE avatar_id = $1 RETURNING s3_key;`
-	err = tx.Select(&thumbnailsS3Keys, thumbnailsStmt, originalAvatarData.ID.String())
+	err := tx.Select(&thumbnailsS3Keys, thumbnailsStmt, originalAvatarData.ID.String())
 	if err != nil {
 		r.logger.Debug("failed to delete thumbnails", zap.String("id", originalAvatarData.ID.String()), zap.Error(err))
 		if errors.Is(err, sql.ErrNoRows) {
@@ -236,15 +252,10 @@ func (r *Repository) DeleteAvatarWithThumbnails(ctx context.Context, flt models.
 	if len(thumbnailsS3Keys) > 0 {
 		s3Keys = append(s3Keys, thumbnailsS3Keys...)
 	}
-	if err = tx.Commit(); err != nil {
-		r.logger.Debug("failed to commit transaction", zap.String("id", originalAvatarData.ID.String()), zap.Error(err))
-		return nil, fmt.Errorf("failed to commit transaction: %w", err)
-	}
-	r.logger.Debug("avatar with thumbnails successfully deleted")
 	return s3Keys, nil
 }
 
-func (r *Repository) UpdateStatus(ctx context.Context, status models.UpdateAvatarStatus) error {
+func (r *Repository) UpdateStatus(ctx context.Context, tx *sqlx.Tx, status models.UpdateAvatarStatus) error {
 	var stmt string
 	var err error
 	if status.ProcessingStatus != "" && status.UploadStatus == "" {
@@ -252,13 +263,13 @@ func (r *Repository) UpdateStatus(ctx context.Context, status models.UpdateAvata
 			UPDATE avatars 
 			SET processing_status = $1, updated_at = $2 
 			WHERE id = $3;`
-		_, err = r.db.ExecContext(ctx, stmt, status.ProcessingStatus, status.UpdatedAt, status.AvatarID)
+		_, err = tx.ExecContext(ctx, stmt, status.ProcessingStatus, status.UpdatedAt, status.AvatarID)
 	} else {
 		stmt = `
 			UPDATE avatars 
 			SET upload_status = $1, updated_at = $2 
 			WHERE id = $3;`
-		_, err = r.db.ExecContext(ctx, stmt, status.UploadStatus, status.UpdatedAt, status.AvatarID)
+		_, err = tx.ExecContext(ctx, stmt, status.UploadStatus, status.UpdatedAt, status.AvatarID)
 	}
 	if err != nil {
 		r.logger.Debug(

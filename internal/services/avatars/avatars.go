@@ -217,14 +217,6 @@ func (s *Service) Get(ctx context.Context, flt models.AvatarFilters, dimensions 
 	return res, err
 }
 
-func (s *Service) SaveThumbnail(ctx context.Context, t models.SaveThumbnail) error {
-	err := s.repo.SaveThumbnail(ctx, t)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (s *Service) UploadThumbnailsToS3(ctx context.Context, msg models.Message) error {
 	var dimensions []models.Dimensions
 	dimensions = append(dimensions, models.Dimensions{
@@ -235,6 +227,11 @@ func (s *Service) UploadThumbnailsToS3(ctx context.Context, msg models.Message) 
 		Height: 300,
 		Width:  300,
 	})
+	tx, err := s.repo.BeginTx(ctx)
+	if err != nil {
+		s.logger.Debug("failed to begin transaction", zap.Error(err))
+		return fmt.Errorf("%w", err)
+	}
 	for _, dim := range dimensions {
 		img, format, err := image.Decode(bytes.NewReader(msg.Body))
 		if err != nil {
@@ -266,54 +263,85 @@ func (s *Service) UploadThumbnailsToS3(ctx context.Context, msg models.Message) 
 			s3key,
 			strDimensions,
 		}
-		err = s.repo.SaveThumbnail(ctx, t)
+		err = s.repo.SaveThumbnail(ctx, tx, t)
 		if err != nil {
 			return err
 		}
 	}
-	err := s.UpdateStatus(ctx, models.UpdateAvatarStatus{
+	err = s.repo.UpdateStatus(ctx, tx, models.UpdateAvatarStatus{
 		AvatarID:         msg.AvatarID,
 		ProcessingStatus: "uploaded",
 		UpdatedAt:        time.Now(),
 	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
-func (s *Service) UpdateStatus(ctx context.Context, status models.UpdateAvatarStatus) error {
-	err := s.repo.UpdateStatus(ctx, status)
-	if err != nil {
-		return err
+	if err = s.repo.CommitTx(tx); err != nil {
+		s.logger.Error("failed to commit transaction", zap.Error(err))
+		err = s.repo.RollbackTx(tx)
+		if err != nil {
+			s.logger.Error("failed to rollback transaction", zap.Error(err))
+			return fmt.Errorf("failed to rollback transaction: %w", err)
+		}
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 	return nil
 }
 
 func (s *Service) Delete(ctx context.Context, flt models.AvatarFilters) error {
-	s3keys, err := s.repo.DeleteAvatarWithThumbnails(ctx, flt)
+	original, _, err := s.repo.GetMetadata(ctx, flt)
 	if err != nil {
 		return err
 	}
-	for _, s3key := range s3keys {
-		brokerMessage := models.Message{
-			UserID: flt.UserID,
-			Action: models.Remove,
-			ID:     uuid.New(),
-			S3Key:  s3key,
-		}
-		err = s.Broker.Produce(ctx, brokerMessage)
-		if err != nil {
-			return fmt.Errorf("failed to send message to the broker: %w", err)
-		}
+	brokerMessage := models.Message{
+		UserID:   flt.UserID,
+		Action:   models.Remove,
+		ID:       uuid.New(),
+		AvatarID: original.ID,
+	}
+	err = s.Broker.Produce(ctx, brokerMessage)
+	if err != nil {
+		s.logger.Debug("failed to delete broker message", zap.Error(err))
+		return fmt.Errorf("failed to send message to the broker: %w", err)
 	}
 	return nil
 }
 
-func (s *Service) DeleteFromS3(ctx context.Context, s3key string) error {
-	err := s.s3Client.Delete(ctx, s3key)
+func (s *Service) DeleteFromS3(ctx context.Context, avatarID uuid.UUID) error {
+	tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
+		s.logger.Error("failed to begin transaction", zap.Error(err))
+		return fmt.Errorf("%w", err)
+	}
+	s3keys, err := s.repo.DeleteAvatarWithThumbnails(tx, models.AvatarFilters{
+		ID: avatarID,
+	})
+	if err != nil {
+		err = s.repo.RollbackTx(tx)
+		if err != nil {
+			s.logger.Error("failed to rollback transaction", zap.Error(err))
+			return fmt.Errorf("failed to rollback transaction: %w", err)
+		}
 		return err
 	}
+	for _, s3key := range s3keys {
+		err = s.s3Client.Delete(ctx, s3key)
+		if err != nil {
+			err = tx.Rollback()
+			if err != nil {
+				s.logger.Error("failed to rollback transaction", zap.Error(err))
+				return fmt.Errorf("failed to rollback transaction: %w", err)
+			}
+			return err
+		}
+	}
+	err = s.repo.CommitTx(tx)
+	if err != nil {
+		s.logger.Error("failed to commit transaction", zap.Error(err))
+		err = s.repo.RollbackTx(tx)
+		if err != nil {
+			s.logger.Error("failed to rollback transaction", zap.Error(err))
+			return fmt.Errorf("failed to rollback transaction: %w", err)
+		}
+	}
+	s.logger.Debug("successfully deleted avatar", zap.String("avatar_id", avatarID.String()))
 	return nil
 }

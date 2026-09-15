@@ -1,0 +1,57 @@
+{"L":"INFO","T":"2026-09-13T20:45:33.589Z","C":"/app/internal/app/app.go:70","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:33.745Z","C":"/app/internal/app/app.go:167","M":"minio server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:33.745Z","C":"/app/internal/app/app.go:174","M":"failed to initialize rabbitmq server","error":"dial tcp 172.21.0.4:5672: connect: connection refused"}
+{"L":"INFO","T":"2026-09-13T20:45:33.981Z","C":"/app/internal/app/app.go:70","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:33.983Z","C":"/app/internal/app/app.go:167","M":"minio server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:33.984Z","C":"/app/internal/app/app.go:174","M":"failed to initialize rabbitmq server","error":"dial tcp 172.21.0.4:5672: connect: connection refused"}
+{"L":"INFO","T":"2026-09-13T20:45:34.321Z","C":"/app/internal/app/app.go:70","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:34.323Z","C":"/app/internal/app/app.go:167","M":"minio server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:34.323Z","C":"/app/internal/app/app.go:174","M":"failed to initialize rabbitmq server","error":"dial tcp 172.21.0.4:5672: connect: connection refused"}
+{"L":"INFO","T":"2026-09-13T20:45:34.850Z","C":"/app/internal/app/app.go:70","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:34.852Z","C":"/app/internal/app/app.go:167","M":"minio server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:34.853Z","C":"/app/internal/app/app.go:174","M":"failed to initialize rabbitmq server","error":"dial tcp 172.21.0.4:5672: connect: connection refused"}
+{"L":"INFO","T":"2026-09-13T20:45:35.758Z","C":"/app/internal/app/app.go:70","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:35.759Z","C":"/app/internal/app/app.go:167","M":"minio server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:35.760Z","C":"/app/internal/app/app.go:174","M":"failed to initialize rabbitmq server","error":"dial tcp 172.21.0.4:5672: connect: connection refused"}
+{"L":"INFO","T":"2026-09-13T20:45:37.486Z","C":"/app/internal/app/app.go:70","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.487Z","C":"/app/internal/app/app.go:167","M":"minio server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.499Z","C":"/app/internal/app/app.go:178","M":"rabbitmq server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.499Z","C":"/app/internal/app/app.go:136","M":"starting server","addr":"0.0.0.0:8080"}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:63","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":10}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-13T20:45:37.500Z","C":"/app/internal/worker/pool.go:162","M":"worker started","worker number":2}
+{"L":"INFO","T":"2026-09-13T20:57:54.422Z","C":"/app/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-13T20:57:54.423Z","C":"/app/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
+{"L":"DEBUG","T":"2026-09-14T21:48:55.804Z","C":"/app/internal/app/app.go:190","M":"failed to initialize database connection","error":"failed to ping database: failed to connect to `user=gp_user database=gophprofile`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused"}
+{"L":"DEBUG","T":"2026-09-14T21:48:56.025Z","C":"/app/internal/app/app.go:190","M":"failed to initialize database connection","error":"failed to ping database: failed to connect to `user=gp_user database=gophprofile`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused"}
+{"L":"DEBUG","T":"2026-09-14T21:48:56.336Z","C":"/app/internal/app/app.go:190","M":"failed to initialize database connection","error":"failed to ping database: failed to connect to `user=gp_user database=gophprofile`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused"}
+{"L":"DEBUG","T":"2026-09-14T21:48:56.831Z","C":"/app/internal/app/app.go:190","M":"failed to initialize database connection","error":"failed to ping database: failed to connect to `user=gp_user database=gophprofile`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused"}
+{"L":"DEBUG","T":"2026-09-14T21:48:57.725Z","C":"/app/internal/app/app.go:190","M":"failed to initialize database connection","error":"failed to ping database: failed to connect to `user=gp_user database=gophprofile`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused"}
+{"L":"DEBUG","T":"2026-09-14T21:48:59.423Z","C":"/app/internal/app/app.go:190","M":"failed to initialize database connection","error":"failed to ping database: failed to connect to `user=gp_user database=gophprofile`:\n\t127.0.0.1:5432 (localhost): dial error: dial tcp 127.0.0.1:5432: connect: connection refused\n\t[::1]:5432 (localhost): dial error: dial tcp [::1]:5432: connect: connection refused"}
+{"L":"INFO","T":"2026-09-14T21:49:22.965Z","C":"/app/internal/app/app.go:70","M":"database connection initialized successfully"}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.967Z","C":"/app/internal/app/app.go:167","M":"minio server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/app/app.go:178","M":"rabbitmq server initialized successfully"}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/app/app.go:136","M":"starting server","addr":"0.0.0.0:8080"}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:64","M":"worker for dlq started"}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":1}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":6}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":4}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":5}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":3}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":2}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":7}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":0}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":9}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":8}
+{"L":"DEBUG","T":"2026-09-14T21:49:22.979Z","C":"/app/internal/worker/pool.go:160","M":"worker started","worker number":10}
+{"L":"INFO","T":"2026-09-15T21:18:22.782Z","C":"/app/cmd/server/app.go:43","M":"shutting the app down"}
+{"L":"INFO","T":"2026-09-15T21:18:22.783Z","C":"/app/cmd/server/app.go:51","M":"grace period has been expired - app closed forcefully"}
