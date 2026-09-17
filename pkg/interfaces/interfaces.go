@@ -7,9 +7,11 @@ import (
 	"uuid"
 
 	"github.com/artni96/GophProfile/internal/models"
+	_ "github.com/golang/mock/mockgen/model"
 	"github.com/jmoiron/sqlx"
 )
 
+//go:generate
 type RepositoryI interface {
 	Save(ctx context.Context, toUpload models.SaveAvatarRequest) (models.SaveAvatarResponse, error)
 	GetMetadata(ctx context.Context, flt models.AvatarFilters) (
@@ -36,6 +38,7 @@ type ServiceI interface {
 	GetMetadataList(ctx context.Context, flt models.AvatarFilters) (res models.GetUserAvatarsListResponse, err error)
 }
 
+//go:generate
 type S3I interface {
 	Save(ctx context.Context, objectKey string, reader io.ReadSeeker) error
 	Get(ctx context.Context, objectKey string) ([]byte, error)
@@ -45,6 +48,7 @@ type S3I interface {
 	Delete(ctx context.Context, objectKey string) error
 }
 
+//go:generate
 type BrokerI interface {
 	Produce(ctx context.Context, m models.Message) error
 	Check() error

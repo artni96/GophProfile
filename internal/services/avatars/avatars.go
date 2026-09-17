@@ -13,7 +13,6 @@ import (
 	"time"
 	"uuid"
 
-	"github.com/artni96/GophProfile/internal/broker"
 	"github.com/artni96/GophProfile/internal/models"
 	"github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/pkg/interfaces"
@@ -40,7 +39,7 @@ type Service struct {
 	Broker   interfaces.BrokerI
 }
 
-func NewService(repo interfaces.RepositoryI, logger *zap.Logger, s3Client interfaces.S3I, broker *broker.Broker) *Service {
+func NewService(repo interfaces.RepositoryI, logger *zap.Logger, s3Client interfaces.S3I, broker interfaces.BrokerI) *Service {
 	serv := &Service{repo: repo, logger: logger, s3Client: s3Client, Broker: broker}
 	return serv
 }
@@ -249,6 +248,8 @@ func (s *Service) UploadThumbnailsToS3(ctx context.Context, msg models.Message) 
 			err = webp.Encode(formated, dst, nil)
 		}
 		if err != nil {
+
+			s.logger.Debug("failed to encode image", zap.Error(err))
 			return fmt.Errorf("failed to encode image: %w", err)
 		}
 		strDimensions := fmt.Sprintf("%dx%d", dim.Width, dim.Height)
@@ -315,6 +316,7 @@ func (s *Service) DeleteFromS3(ctx context.Context, avatarID uuid.UUID) error {
 		ID: avatarID,
 	})
 	if err != nil {
+		s.logger.Error("failed to delete avatar from db", zap.Error(err))
 		err = s.repo.RollbackTx(tx)
 		if err != nil {
 			s.logger.Error("failed to rollback transaction", zap.Error(err))

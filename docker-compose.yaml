@@ -53,7 +53,7 @@ services:
       retries: 5
 
   server:
-    image: artni96/gophprofile-server-image:1.0
+    image: artni96/gophprofile-server-image:1.1
     container_name: gp-server
     ports:
       - "${SERVER_EXTERNAL_PORT}:${SERVER_INTERNAL_PORT}"
