@@ -1,13 +1,34 @@
--include .env
+.PHONY: help
+help:
+	@echo "Commands list:"
+	@sed -n "s/^##//p" $(MAKEFILE_LIST) | column -t -s ":" | sed -e "s/^/ /"
 
-DB_DSN := "postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(SSL_MODE)"
 
-.PHONY: db-up
-db-up:
-	@echo "upgrading db up to the last revision"
-	migrate -database $(DB_DSN) -path ./migrations up
+## run: launches app
+.PHONY: run
+run:
+	@echo "launching app"
+	docker compose -f docker-compose.yaml up -d
 
-.PHONY: db-down
-db-down:
-	@echo "downgrading db one revision down"
-	migrate -database $(DB_DSN) -path ./migrations down
+## stop: stops app
+.PHONY: stop
+stop:
+	@echo "stopping app"
+	docker compose -f docker-compose.yaml down
+
+
+## tests-db-up: creates database for integration tests.
+.PHONY: tests-db-up
+tests-db-up:
+	docker compose -f docker-compose-tests.yaml --env-file .env-tests up -d
+
+## tests-db-down: drops database for integration tests.
+.PHONY: tests-db-down
+tests-db-down:
+	docker compose -f docker-compose-tests.yaml down
+
+## run-tests: runs app tests
+.PHONY: tests-run
+tests-run:
+	@echo "Running tests..."
+	GOARCH=arm64 GOOS=darwin go test ./... -cover

@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 	"uuid"
 
 	"github.com/artni96/GophProfile/internal/broker"
@@ -61,7 +62,17 @@ func (wp *Pool) Launch(ctx context.Context) *sync.WaitGroup {
 
 func (wp *Pool) dlqWorker(ctx context.Context) error {
 	wp.logger.Debug("worker for dlq started")
-	dlqMsgs, err := wp.Broker.Ch.Consume(
+
+	ch, err := wp.Broker.Conn.Channel()
+	if err != nil {
+		return fmt.Errorf("create channel for dlq worker: %w", err)
+	}
+	defer ch.Close()
+	if err = ch.Qos(1, 0, false); err != nil {
+		return fmt.Errorf("set QoS for dlq worker: %w", err)
+	}
+
+	dlqMsgs, err := ch.Consume(
 		wp.Broker.Dlq,
 		"",
 		false,
@@ -76,9 +87,6 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 	}
 	for {
 		select {
-		//case <-gfCtx.Done():
-		//	wp.broker.logger.Debug("dql worker process done: grace context done")
-		//	return nil
 		case <-ctx.Done():
 			wp.logger.Debug("dlq worker process done: main context done")
 			return nil
@@ -89,31 +97,32 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 			}
 			msg, err := wp.prepareMsg(d)
 			if err != nil {
-				wp.logger.Debug("failed to prepare message", zap.Error(err))
+				if err = d.Ack(false); err != nil {
+					wp.logger.Error("dlq worker: failed to ack", zap.Error(err))
+					return fmt.Errorf("dlq worker: ack after prepare failure: %w", err)
+				}
+				wp.logger.Debug("dlq worker failed to prepare message", zap.Error(err))
 				continue
 			}
-			var isSuccess bool
-			switch msg.Action {
-			case models.Upload:
-				for i := 0; i < 3; i++ {
+			isSuccess := false
+			for attempt := 0; attempt < 3; attempt++ {
+				if ctx.Err() != nil {
+					break
+				}
+				switch msg.Action {
+				case models.Upload:
 					err = wp.service.UploadThumbnailsToS3(ctx, msg)
-					if err != nil {
-						wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
-						continue
-					}
+				case models.Remove:
+					err = wp.service.DeleteFromS3(ctx, msg.AvatarID)
+				default:
+					err = fmt.Errorf("unknown action: %v", msg.Action)
+				}
+				if err == nil {
 					isSuccess = true
 					break
 				}
-			case models.Remove:
-				for i := 0; i < 3; i++ {
-					err = wp.service.DeleteFromS3(ctx, msg.S3Key)
-					if err != nil {
-						wp.logger.Debug("worker process delete failed", zap.Error(err))
-						continue
-					}
-					isSuccess = true
-					break
-				}
+				wp.logger.Debug("attempt failed", zap.Int("attempt", attempt), zap.Error(err))
+				time.Sleep(time.Duration((attempt+1)*(attempt+1)) * time.Second)
 			}
 			if !isSuccess {
 				switch msg.Action {
@@ -149,15 +158,17 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 
 func (wp *Pool) worker(ctx context.Context, workerID int) error {
 	wp.logger.Debug("worker started", zap.Int("worker number", workerID))
+
 	ch, err := wp.Broker.Conn.Channel()
 	if err != nil {
-		wp.logger.Debug("failed to init worker channel", zap.Error(err))
-		return fmt.Errorf("failed to create channel for worker with id%d: %w", workerID, err)
+		return fmt.Errorf("create channel for worker %d: %w", workerID, err)
 	}
+	defer ch.Close()
+
 	if err = ch.Qos(1, 0, false); err != nil {
-		wp.logger.Debug("failed to set QoS", zap.Error(err))
-		return fmt.Errorf("failed to set QoS for worker with id%d: %w", workerID, err)
+		return fmt.Errorf("set QoS for worker %d: %w", workerID, err)
 	}
+
 	msgs, err := ch.Consume(
 		wp.Broker.MainQ,
 		"",
@@ -168,94 +179,56 @@ func (wp *Pool) worker(ctx context.Context, workerID int) error {
 		nil,
 	)
 	if err != nil {
-		wp.logger.Debug("failed to consume messages", zap.Error(err))
-		return fmt.Errorf("failed to consume message: %w", err)
+		return fmt.Errorf("consume for worker %d: %w", workerID, err)
 	}
 
 	for {
 		select {
-		//case <-gfCtx.Done():
-		//	wp.broker.logger.Debug("worker process done: grace context done", zap.Int("worker id", workerID))
-		//	return nil
 		case <-ctx.Done():
-			wp.logger.Debug("worker process done: main context done", zap.Int("worker id", workerID))
 			return nil
 		case d, ok := <-msgs:
 			if !ok {
-				wp.logger.Debug("broker queue is closed", zap.Int("worker id", workerID))
-				return fmt.Errorf("broker queue is closed")
+				return fmt.Errorf("worker %d: delivery channel closed", workerID)
 			}
 
 			msg, err := wp.prepareMsg(d)
 			if err != nil {
-				wp.logger.Debug("failed to prepare message", zap.Error(err))
+				wp.logger.Debug(
+					"failed to prepare message for consumer", zap.Int("worker id", workerID), zap.Error(err))
+				_ = d.Nack(false, false)
 				continue
 			}
 
-			//var isUploaded bool
-			//for i := 0; i < 3; i++ {
-			//	err = wp.service.UploadThumbnailsToS3(ctx, msg)
-			//	if err != nil {
-			//		wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
-			//		continue
-			//	}
-			//	isUploaded = true
-			//	break
-			//}
-			var isSuccess bool
-			switch msg.Action {
-			case models.Upload:
-				for i := 0; i < 3; i++ {
+			isSuccess := false
+			for attempt := 0; attempt < 3; attempt++ {
+				if ctx.Err() != nil {
+					break
+				}
+				switch msg.Action {
+				case models.Upload:
 					err = wp.service.UploadThumbnailsToS3(ctx, msg)
-					if err != nil {
-						wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
-						continue
-					}
+				case models.Remove:
+					err = wp.service.DeleteFromS3(ctx, msg.AvatarID)
+				default:
+					err = fmt.Errorf("unknown action: %v", msg.Action)
+				}
+				if err == nil {
 					isSuccess = true
 					break
 				}
-			case models.Remove:
-				for i := 0; i < 3; i++ {
-					err = wp.service.DeleteFromS3(ctx, msg.S3Key)
-					if err != nil {
-						wp.logger.Debug("worker process delete failed", zap.Error(err))
-						continue
-					}
-					isSuccess = true
-					break
-				}
+				wp.logger.Debug("attempt failed", zap.Int("attempt", attempt), zap.Error(err))
+				time.Sleep(time.Duration((attempt+1)*(attempt+1)) * time.Second)
 			}
+
 			if !isSuccess {
-				wp.logger.Debug("failed to upload thumbnails", zap.Error(err))
-				if err = d.Nack(false, false); err != nil {
-					wp.logger.Debug("worker process nack failed", zap.Error(err))
-				} else {
-					wp.logger.Debug(
-						fmt.Sprintf("message goes to %s", wp.Broker.Dlq),
-						zap.String("message id", msg.ID.String()),
-						zap.Int("worker id", workerID))
-				}
+				_ = d.Nack(false, false) // DLQ
 				continue
 			}
 
-			err = d.Ack(false)
-			if err != nil {
-				wp.logger.Error("worker process ack failed", zap.Error(err))
-				if err = d.Nack(false, false); err != nil {
-					wp.logger.Debug("worker process nack failed", zap.Error(err))
-				} else {
-					wp.logger.Debug(
-						fmt.Sprintf("message goes to %s", wp.Broker.Dlq),
-						zap.String("message id", msg.ID.String()),
-						zap.Int("worker id", workerID))
-				}
-				continue
+			if err = d.Ack(false); err != nil {
+				wp.logger.Error("ack failed", zap.Error(err))
+				return fmt.Errorf("worker %d: ack: %w", workerID, err)
 			}
-			wp.logger.Debug(
-				"worker process ack done",
-				zap.Int("worker id", workerID),
-				zap.String("message id", msg.ID.String()),
-			)
 		}
 	}
 }

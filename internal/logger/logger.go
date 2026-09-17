@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"log"
 	"os"
 
 	"go.uber.org/zap"
@@ -21,8 +22,9 @@ func InitLogger(level string) (*zap.Logger, error) {
 	logFileConfig.EncodeCaller = zapcore.FullCallerEncoder
 	fileEncoder := zapcore.NewJSONEncoder(logFileConfig)
 
-	logFile, err := os.OpenFile("./internal/logger/shortener.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	logFile, err := os.OpenFile("./internal/logger/logs.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
+		log.Printf("failed to open log file: %v\n", err)
 		return nil, err
 	}
 
