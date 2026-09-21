@@ -135,8 +135,8 @@ func (b *Broker) Produce(ctx context.Context, m models.Message) error {
 
 	err := b.Ch.PublishWithContext(brokerCtx, b.ex, "main", true, false, amqp.Publishing{
 		DeliveryMode: amqp.Persistent,
+		ContentType:  "application/octet-stream",
 		Body:         m.Body,
-		ContentType:  "text/plain",
 		Headers: amqp.Table{
 			"avatar_id": m.AvatarID.String(),
 			"user_id":   m.UserID,
@@ -151,16 +151,18 @@ func (b *Broker) Produce(ctx context.Context, m models.Message) error {
 	}
 
 	select {
-	case c := <-b.confirms:
-		if c.Ack {
-			b.logger.Debug("message has been delivered to broker successfully")
-		} else {
-			b.logger.Error("failed to deliver message to broker")
+	case c, ok := <-b.confirms:
+		if !ok {
+			return errors.New("confirm channel closed; broker connection lost")
 		}
-	case <-ctx.Done():
-		log.Println("failed to deliver message to broker: timeout is out")
+		if !c.Ack {
+			return errors.New("broker nacked the message")
+		}
+		b.logger.Debug("message delivered to broker")
+		return nil
+	case <-brokerCtx.Done():
+		return fmt.Errorf("publish confirm timeout: %w", brokerCtx.Err())
 	}
-	return nil
 }
 
 func (b *Broker) Check() error {
