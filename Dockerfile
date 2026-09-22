@@ -12,4 +12,6 @@ RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/server .
 COPY --from=builder /app/.env .
+COPY --from=builder /app/web ./web
+COPY --from=builder /app/migrations ./migrations
 ENTRYPOINT ["/app/server"]

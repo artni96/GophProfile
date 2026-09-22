@@ -5,22 +5,22 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 
 	"github.com/artni96/GophProfile/internal/config"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"go.uber.org/zap"
 )
 
 type S3Client struct {
 	client     *s3.S3
-	logger     *zap.Logger
+	logger     *slog.Logger
 	BucketName string
 }
 
-func NewS3Client(cfg *config.Config, logger *zap.Logger, bucketName string) (*S3Client, error) {
+func NewS3Client(cfg *config.Config, logger *slog.Logger, bucketName string) (*S3Client, error) {
 	s3cfg := &aws.Config{
 		Region:           aws.String(cfg.S3.Region),
 		Endpoint:         aws.String(cfg.S3.Endpoint),
@@ -51,7 +51,7 @@ func (s *S3Client) Save(ctx context.Context, objectKey string, reader io.ReadSee
 	})
 
 	if err != nil {
-		s.logger.Debug("failed to upload object", zap.Error(err))
+		s.logger.Debug("failed to upload object", "error", err)
 		return fmt.Errorf("failed to upload object: %v", err)
 	}
 
@@ -65,7 +65,7 @@ func (s *S3Client) Get(ctx context.Context, objectKey string) ([]byte, error) {
 		Key:    aws.String(objectKey),
 	})
 	if err != nil {
-		s.logger.Debug("failed to download object", zap.Error(err))
+		s.logger.Debug("failed to download object", "error", err)
 		return nil, fmt.Errorf("failed to download object: %v", err)
 	}
 	defer result.Body.Close()
@@ -73,7 +73,7 @@ func (s *S3Client) Get(ctx context.Context, objectKey string) ([]byte, error) {
 	buf := &bytes.Buffer{}
 	_, err = io.Copy(buf, result.Body)
 	if err != nil {
-		s.logger.Debug("failed to download object", zap.Error(err))
+		s.logger.Debug("failed to download object", "error", err)
 		return nil, fmt.Errorf("failed to read object data: %v", err)
 	}
 
@@ -84,7 +84,7 @@ func (s *S3Client) Get(ctx context.Context, objectKey string) ([]byte, error) {
 func (s *S3Client) Check() (bool, error) {
 	_, err := s.client.ListBuckets(&s3.ListBucketsInput{})
 	if err != nil {
-		s.logger.Debug("failed to list buckets", zap.Error(err))
+		s.logger.Debug("failed to list buckets", "error", err)
 		return false, err
 	}
 	return true, nil
@@ -104,7 +104,7 @@ func (s *S3Client) Delete(ctx context.Context, objectKey string) error {
 		Key:    aws.String(objectKey),
 	})
 	if err != nil {
-		s.logger.Debug("failed to delete object", zap.Error(err))
+		s.logger.Debug("failed to delete object", "error", err)
 		return fmt.Errorf("failed to delete object: %v", err)
 	}
 	s.logger.Debug(fmt.Sprintf("Successfully deleted %s/%s", s.BucketName, objectKey))

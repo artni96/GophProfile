@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -15,18 +16,19 @@ import (
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"go.uber.org/zap"
 )
 
 type UserAvatarHandler struct {
 	Service interfaces.ServiceI
 	ctx     context.Context
+	logger  *slog.Logger
 }
 
-func NewUserAvatarHandler(ctx context.Context, service interfaces.ServiceI) *UserAvatarHandler {
+func NewUserAvatarHandler(ctx context.Context, logger *slog.Logger, service interfaces.ServiceI) *UserAvatarHandler {
 	return &UserAvatarHandler{
 		Service: service,
 		ctx:     ctx,
+		logger:  logger,
 	}
 }
 
@@ -52,6 +54,7 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	userID := chi.URLParam(r, "user_id")
 	if userID == "" {
+		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("No user id provided"))
 		return
@@ -62,6 +65,7 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := h.Service.Get(h.ctx, flt, size)
 	if err != nil {
+		h.logger.ErrorContext(r.Context(), "failed to get user avatars", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(handlers.ErrMsg("Avatar not found"))
@@ -72,6 +76,7 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", res.MimeType)
+	h.logger.DebugContext(r.Context(), "got user avatar", "user_id", userID, "mime_type", res.MimeType)
 	w.Write(res.Binary)
 }
 
@@ -91,6 +96,7 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	userID := chi.URLParam(r, "user_id")
 	if userID == "" {
+		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("No user id provided"))
 		return
@@ -100,6 +106,7 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.Service.Delete(h.ctx, flt)
 	if err != nil {
+		h.logger.ErrorContext(r.Context(), "failed to delete user avatars", "error", err)
 		if errors.Is(err, avatarsrepo.ErrNotOwner) {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write(handlers.Response403)
@@ -109,6 +116,7 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	h.logger.DebugContext(r.Context(), "last user avatars deleted successfully", "user_id", userID)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -130,6 +138,7 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	userID := chi.URLParam(r, "user_id")
 	if userID == "" {
+		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("No user id provided"))
 		return
@@ -141,6 +150,7 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	} else {
 		convertedLimit, err := strconv.Atoi(strLimit)
 		if err != nil {
+			h.logger.ErrorContext(r.Context(), "failed to convert limit param to int", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(handlers.ErrMsg("Invalid limit value"))
 			return
@@ -169,6 +179,7 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := h.Service.GetMetadataList(h.ctx, flt)
 	if err != nil {
+		h.logger.ErrorContext(r.Context(), "failed to get last user avatars", "error", err, "user_id", userID)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write(handlers.Response500)
@@ -177,15 +188,17 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonRes, err := json.Marshal(res)
 	if err != nil {
+		h.logger.ErrorContext(r.Context(), "failed to marshal response to json", "error", err, "user_id", userID)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(handlers.Response500)
 		return
 	}
+	h.logger.DebugContext(r.Context(), "got user avatars list", "user_id", userID)
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonRes)
 }
 
-func UserAvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *zap.Logger) chi.Router {
+func UserAvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *slog.Logger) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -194,7 +207,7 @@ func UserAvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *
 	r.Use(middleware.RequestID)
 	r.Use(middlewares.GzipMiddleware)
 
-	handler := NewUserAvatarHandler(ctx, service)
+	handler := NewUserAvatarHandler(ctx, logger, service)
 
 	r.Route("/", func(r chi.Router) {
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {

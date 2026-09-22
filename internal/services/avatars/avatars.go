@@ -9,6 +9,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
+	"log/slog"
 	"mime/multipart"
 	"time"
 	"uuid"
@@ -17,7 +18,6 @@ import (
 	"github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	"github.com/deepteams/webp"
-	"go.uber.org/zap"
 	"golang.org/x/image/draw"
 )
 
@@ -34,12 +34,12 @@ var (
 
 type Service struct {
 	repo     interfaces.RepositoryI
-	logger   *zap.Logger
+	logger   *slog.Logger
 	s3Client interfaces.S3I
 	Broker   interfaces.BrokerI
 }
 
-func NewService(repo interfaces.RepositoryI, logger *zap.Logger, s3Client interfaces.S3I, broker interfaces.BrokerI) *Service {
+func NewService(repo interfaces.RepositoryI, logger *slog.Logger, s3Client interfaces.S3I, broker interfaces.BrokerI) *Service {
 	serv := &Service{repo: repo, logger: logger, s3Client: s3Client, Broker: broker}
 	return serv
 }
@@ -51,8 +51,7 @@ func (s *Service) Save(
 	userID string,
 ) (res models.SaveAvatarResponse, err error) {
 	if header.Size > imageMaxSize {
-		s.logger.Debug("image too big", zap.Int64("file size", header.Size))
-		return res, ErrExceededSize
+		return res, fmt.Errorf("%w: file size - %d", ErrExceededSize, header.Size)
 	}
 	var mimeType string
 	for k, v := range header.Header {
@@ -62,13 +61,11 @@ func (s *Service) Save(
 	}
 	body, err := io.ReadAll(file)
 	if err != nil {
-		s.logger.Debug("failed to read body", zap.Error(err))
-		return res, ErrInternalServer
+		return res, errors.Join(fmt.Errorf("failed to read body: %w", err), ErrInternalServer)
 	}
 	fileCfg, format, err := image.DecodeConfig(bytes.NewReader(body))
 	if err != nil {
-		s.logger.Debug("failed to decode body", zap.Error(err))
-		return res, ErrInternalServer
+		return res, errors.Join(fmt.Errorf("failed to decode body: %w", err), ErrInternalServer)
 	}
 
 	isFormatSupported := false
@@ -80,8 +77,7 @@ func (s *Service) Save(
 	}
 
 	if !isFormatSupported {
-		s.logger.Debug("unsupported file format", zap.String("format", mimeType))
-		return res, ErrUnsupportedFormat
+		return res, fmt.Errorf("%w, file format - %s", ErrUnsupportedFormat, format)
 	}
 
 	entityToSave := models.SaveAvatarRequest{}
@@ -201,15 +197,15 @@ func (s *Service) Get(ctx context.Context, flt models.AvatarFilters, dimensions 
 		}
 	}
 	if s3key == "" {
-		s.logger.Debug("failed to get metadata",
-			zap.String("avatar_id", md.ID.String()), zap.String("dimensions", dimensions))
-		return res, avatars.ErrAvatarNotFound
+		return res, errors.Join(
+			fmt.Errorf("failed to get metadata: avatar_id - %s, dimension - %s", md.ID.String(), dimensions),
+			avatars.ErrAvatarNotFound,
+		)
 	}
 	binary, err := s.s3Client.Get(ctx, s3key)
 	if err != nil {
-		s.logger.Debug("failed to fetch me",
-			zap.String("avatar_id", md.ID.String()),
-			zap.String("dimensions", dimensions), zap.Error(err))
+		return res, errors.Join(
+			fmt.Errorf("failed to fetch binary data from s3: %w", err), avatars.ErrAvatarNotFound)
 	}
 	res.Binary = binary
 	res.MimeType = md.MimeType
@@ -228,8 +224,7 @@ func (s *Service) UploadThumbnailsToS3(ctx context.Context, msg models.Message) 
 	})
 	tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
-		s.logger.Debug("failed to begin transaction", zap.Error(err))
-		return fmt.Errorf("%w", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	for _, dim := range dimensions {
 		img, format, err := image.Decode(bytes.NewReader(msg.Body))
@@ -248,8 +243,6 @@ func (s *Service) UploadThumbnailsToS3(ctx context.Context, msg models.Message) 
 			err = webp.Encode(formated, dst, nil)
 		}
 		if err != nil {
-
-			s.logger.Debug("failed to encode image", zap.Error(err))
 			return fmt.Errorf("failed to encode image: %w", err)
 		}
 		strDimensions := fmt.Sprintf("%dx%d", dim.Width, dim.Height)
@@ -276,10 +269,8 @@ func (s *Service) UploadThumbnailsToS3(ctx context.Context, msg models.Message) 
 	})
 
 	if err = s.repo.CommitTx(tx); err != nil {
-		s.logger.Error("failed to commit transaction", zap.Error(err))
 		err = s.repo.RollbackTx(tx)
 		if err != nil {
-			s.logger.Error("failed to rollback transaction", zap.Error(err))
 			return fmt.Errorf("failed to rollback transaction: %w", err)
 		}
 		return fmt.Errorf("failed to commit transaction: %w", err)
@@ -300,7 +291,6 @@ func (s *Service) Delete(ctx context.Context, flt models.AvatarFilters) error {
 	}
 	err = s.Broker.Produce(ctx, brokerMessage)
 	if err != nil {
-		s.logger.Debug("failed to delete broker message", zap.Error(err))
 		return fmt.Errorf("failed to send message to the broker: %w", err)
 	}
 	return nil
@@ -309,17 +299,14 @@ func (s *Service) Delete(ctx context.Context, flt models.AvatarFilters) error {
 func (s *Service) DeleteFromS3(ctx context.Context, avatarID uuid.UUID) error {
 	tx, err := s.repo.BeginTx(ctx)
 	if err != nil {
-		s.logger.Error("failed to begin transaction", zap.Error(err))
-		return fmt.Errorf("%w", err)
+		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
 	s3keys, err := s.repo.DeleteAvatarWithThumbnails(tx, models.AvatarFilters{
 		ID: avatarID,
 	})
 	if err != nil {
-		s.logger.Error("failed to delete avatar from db", zap.Error(err))
 		err = s.repo.RollbackTx(tx)
 		if err != nil {
-			s.logger.Error("failed to rollback transaction", zap.Error(err))
 			return fmt.Errorf("failed to rollback transaction: %w", err)
 		}
 		return err
@@ -329,7 +316,6 @@ func (s *Service) DeleteFromS3(ctx context.Context, avatarID uuid.UUID) error {
 		if err != nil {
 			err = tx.Rollback()
 			if err != nil {
-				s.logger.Error("failed to rollback transaction", zap.Error(err))
 				return fmt.Errorf("failed to rollback transaction: %w", err)
 			}
 			return err
@@ -337,13 +323,11 @@ func (s *Service) DeleteFromS3(ctx context.Context, avatarID uuid.UUID) error {
 	}
 	err = s.repo.CommitTx(tx)
 	if err != nil {
-		s.logger.Error("failed to commit transaction", zap.Error(err))
 		err = s.repo.RollbackTx(tx)
 		if err != nil {
-			s.logger.Error("failed to rollback transaction", zap.Error(err))
 			return fmt.Errorf("failed to rollback transaction: %w", err)
 		}
+		return err
 	}
-	s.logger.Debug("successfully deleted avatar", zap.String("avatar_id", avatarID.String()))
 	return nil
 }

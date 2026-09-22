@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/artni96/GophProfile/internal/models"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"go.uber.org/zap"
 )
 
 type BrokerI interface {
@@ -21,7 +21,7 @@ type BrokerI interface {
 type Broker struct {
 	Conn     *amqp.Connection
 	Ch       *amqp.Channel
-	logger   *zap.Logger
+	logger   *slog.Logger
 	ex       string
 	binding  string
 	MainQ    string
@@ -29,7 +29,7 @@ type Broker struct {
 	confirms chan amqp.Confirmation
 }
 
-func NewBroker(logger *zap.Logger) (*Broker, error) {
+func NewBroker(logger *slog.Logger) (*Broker, error) {
 	broker := &Broker{
 		logger: logger,
 	}
@@ -79,12 +79,12 @@ func (b *Broker) Init() error {
 	}
 	ch, err := conn.Channel()
 	if err != nil {
-		b.logger.Error("failed to open channel", zap.Error(err))
+		b.logger.Error("failed to open channel", "error", err)
 		return fmt.Errorf("failed to open channel: %w", err)
 	}
 
 	if err = ch.Confirm(false); err != nil {
-		b.logger.Error("failed to init confirmations", zap.Error(err))
+		b.logger.Error("failed to init confirmations", "error", err)
 		return fmt.Errorf("failed to init confirmations: %w", err)
 	}
 	confirms := ch.NotifyPublish(make(chan amqp.Confirmation, 100))
@@ -104,7 +104,7 @@ func (b *Broker) Init() error {
 
 	b.ex = "images.direct"
 	if err = ch.ExchangeDeclare(b.ex, "direct", true, false, false, false, nil); err != nil {
-		b.logger.Error("failed to declare exchange", zap.Error(err))
+		b.logger.Error("failed to declare exchange", "error", err)
 		return fmt.Errorf("failed to declare exchange: %w", err)
 	}
 
@@ -116,12 +116,12 @@ func (b *Broker) Init() error {
 	b.MainQ = "images.main"
 	q, err := ch.QueueDeclare(b.MainQ, true, false, false, false, dlxArgs)
 	if err != nil {
-		b.logger.Error("failed to declare queue", zap.Error(err))
+		b.logger.Error("failed to declare queue", "error", err)
 		return fmt.Errorf("failed to declare queue: %w", err)
 	}
 	b.binding = "main"
 	if err = ch.QueueBind(q.Name, b.binding, b.ex, false, nil); err != nil {
-		b.logger.Error("failed to bind queue", zap.Error(err))
+		b.logger.Error("failed to bind queue", "error", err)
 		return fmt.Errorf("failed to bind queue: %w", err)
 	}
 	b.Ch = ch
@@ -146,7 +146,7 @@ func (b *Broker) Produce(ctx context.Context, m models.Message) error {
 		MessageId: m.ID.String(),
 	})
 	if err != nil {
-		b.logger.Error("failed to publish message", zap.Error(err))
+		b.logger.Error("failed to publish message", "error", err)
 		return fmt.Errorf("failed to publish message: %w", err)
 	}
 

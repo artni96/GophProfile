@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"log/slog"
 	"mime/multipart"
 	"net/textproto"
 	"testing"
@@ -18,7 +19,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zaptest"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 )
 
 func testPNG(t *testing.T) []byte {
@@ -63,7 +64,7 @@ func TestSave(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker)
 
 	mockUser := "user-1"
 	mockStatus := "uploaded"
@@ -93,7 +94,7 @@ func TestGetMetadata(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker)
 	ctx := t.Context()
 	avatarID := uuid.New()
 	repoResp := models.AvatarDBEntity{
@@ -143,7 +144,7 @@ func TestGetMetadataList(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker)
 	ctx := t.Context()
 	updatedAt := time.Now()
 	repoRespOriginals := []models.AvatarDBEntity{
@@ -223,7 +224,7 @@ func TestGet(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker)
 	ctx := t.Context()
 	s3key := "test.jpg"
 	avatarID := uuid.New()
@@ -270,7 +271,7 @@ func TestUploadThumbnailsToS3(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker)
 	ctx := t.Context()
 	avatarID := uuid.New()
 	s3key := "test.png"
@@ -302,7 +303,7 @@ func TestDelete(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker)
 	ctx := t.Context()
 	broker.EXPECT().Produce(ctx, gomock.Any()).Return(nil)
 	avatarID := uuid.New()
@@ -342,7 +343,7 @@ func TestDeleteFromS3(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker)
 	ctx := t.Context()
 	avatarID := uuid.New()
 	db, sqlMock, err := sqlmock.New()

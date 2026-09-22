@@ -7,6 +7,7 @@ import (
 	"fmt"
 	_ "image/jpeg"
 	_ "image/png"
+	"log/slog"
 	"net/http"
 	"uuid"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/artni96/GophProfile/internal/models"
 	avatarsrepo "github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/pkg/interfaces"
-	"go.uber.org/zap"
 	_ "golang.org/x/image/webp"
 
 	"github.com/artni96/GophProfile/internal/services/avatars"
@@ -26,12 +26,14 @@ import (
 type AvatarHandler struct {
 	Service interfaces.ServiceI
 	ctx     context.Context
+	logger  *slog.Logger
 }
 
-func NewAvatarHandler(ctx context.Context, service interfaces.ServiceI) *AvatarHandler {
+func NewAvatarHandler(ctx context.Context, service interfaces.ServiceI, logger *slog.Logger) *AvatarHandler {
 	return &AvatarHandler{
 		Service: service,
 		ctx:     ctx,
+		logger:  logger,
 	}
 }
 
@@ -59,12 +61,14 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 	file, header, err := r.FormFile("image")
 	if err != nil {
+		h.logger.Error("failed to extract image metadata", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no image in form"))
 		return
 	}
 	userID := r.Header.Get("X-User-Id")
 	if userID == "" {
+		h.logger.Error("failed to extract user ID from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no user id in header"))
 		return
@@ -72,6 +76,7 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.Service.Save(h.ctx, file, header, userID)
 	if err != nil {
+		h.logger.Error("failed to save image", "user_id", userID, "error", err)
 		if errors.Is(err, avatars.ErrExceededSize) {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
 			w.Write(handlers.FileTooLargeResponse)
@@ -118,6 +123,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	strAvatarID := chi.URLParam(r, "avatar_id")
 	avatarID, err := uuid.Parse(strAvatarID)
 	if err != nil {
+		h.logger.Error("failed to parse avatar id", "error", err)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(handlers.ErrMsg("Avatar not found"))
 		return
@@ -128,6 +134,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := h.Service.Get(h.ctx, flt, size)
 	if err != nil {
+		h.logger.Error("failed to fetch avatar", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(handlers.ErrMsg("Avatar not found"))
@@ -160,6 +167,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	avatarID := chi.URLParam(r, "avatarID")
 	if avatarID == "" {
+		h.logger.Error("failed to extract avatar id from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("failed to parse avatar_id"))
 		return
@@ -167,6 +175,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	parsedAvatarID := uuid.MustParse(avatarID)
 	res, err := h.Service.GetMetadata(h.ctx, parsedAvatarID)
 	if err != nil {
+		h.logger.Error("failed to fetch avatar metadata", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(handlers.ErrMsg(fmt.Sprintf("avatar with id %s not found", avatarID)))
@@ -178,6 +187,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonRes, err := json.Marshal(res)
 	if err != nil {
+		h.logger.Error("failed to marshal avatar metadata", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(handlers.Response500)
 		return
@@ -206,12 +216,14 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	avatarID := chi.URLParam(r, "avatarID")
 	if avatarID == "" {
+		h.logger.Error("failed to extract avatar id from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("failed to parse avatar_id"))
 		return
 	}
 	userID := r.Header.Get("X-User-Id")
 	if userID == "" {
+		h.logger.Error("failed to extract user ID from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no user id in header"))
 		return
@@ -224,6 +236,7 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.Service.Delete(h.ctx, flt)
 	if err != nil {
+		h.logger.Error("failed to delete avatar", "error", err, "user_id", userID)
 		if errors.Is(err, avatarsrepo.ErrNotOwner) {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write(handlers.Response403)
@@ -236,7 +249,7 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func AvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *zap.Logger) chi.Router {
+func AvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *slog.Logger) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -245,7 +258,7 @@ func AvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *zap.
 	r.Use(middleware.RequestID)
 	r.Use(middlewares.GzipMiddleware)
 
-	handler := NewAvatarHandler(ctx, service)
+	handler := NewAvatarHandler(ctx, service, logger)
 
 	r.Route("/", func(r chi.Router) {
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {

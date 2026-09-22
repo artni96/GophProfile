@@ -1,39 +1,55 @@
 package logger
 
 import (
+	"context"
 	"log"
-	"os"
+	"log/slog"
+	"time"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlplog/otlploggrpc"
+	sdklog "go.opentelemetry.io/otel/sdk/log"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.26.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
-func InitLogger(level string) (*zap.Logger, error) {
-	levelMap := map[string]zapcore.Level{
-		"debug": zapcore.DebugLevel,
-		"info":  zapcore.InfoLevel,
-		"warn":  zapcore.WarnLevel,
-		"error": zapcore.ErrorLevel,
-		"fatal": zapcore.FatalLevel,
-	}
-
-	consoleEncoder := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
-	logFileConfig := zap.NewDevelopmentEncoderConfig()
-	logFileConfig.EncodeCaller = zapcore.FullCallerEncoder
-	fileEncoder := zapcore.NewJSONEncoder(logFileConfig)
-
-	logFile, err := os.OpenFile("./internal/logger/logs.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+func InitLogger(ctx context.Context) (*slog.Logger, func()) {
+	exporter, err := otlploggrpc.New(ctx)
 	if err != nil {
-		log.Printf("failed to open log file: %v\n", err)
-		return nil, err
+		log.Fatalf("failed to create OTLP log exporter: %v", err)
 	}
-
-	fileOut := zapcore.NewCore(fileEncoder, zapcore.AddSync(logFile), levelMap[level])
-	stdOut := zapcore.NewCore(consoleEncoder, zapcore.AddSync(os.Stdout), levelMap[level])
-
-	loggerCore := zapcore.NewTee(fileOut, stdOut)
-	logger := zap.New(loggerCore, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
-	defer logger.Sync()
-
-	return logger, nil
+	res, err := resource.New(ctx,
+		resource.WithFromEnv(),
+		resource.WithTelemetrySDK(),
+		resource.WithAttributes(
+			semconv.ServiceNameKey.String("gp-service"),
+			semconv.ServiceVersionKey.String("1.0.0"),
+		),
+	)
+	if err != nil {
+		log.Fatalf("failed to create resource: %v", err)
+	}
+	loggerProvider := sdklog.NewLoggerProvider(
+		sdklog.WithResource(res),
+		sdklog.WithProcessor(sdklog.NewBatchProcessor(exporter)),
+	)
+	handler := otelslog.NewHandler(
+		"gp-service",
+		otelslog.WithLoggerProvider(loggerProvider),
+	)
+	baseLogger := slog.New(handler)
+	logger := baseLogger.With(
+		"service", "gp-service",
+		"trace_id", trace.SpanFromContext(context.Background()))
+	slog.SetDefault(logger)
+	shutdown := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := loggerProvider.Shutdown(ctx); err != nil {
+			otel.Handle(err)
+		}
+	}
+	return logger, shutdown
 }

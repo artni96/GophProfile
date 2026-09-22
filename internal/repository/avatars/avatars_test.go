@@ -9,20 +9,17 @@ import (
 
 	"github.com/artni96/GophProfile/internal/models"
 	"github.com/artni96/GophProfile/tests"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zaptest"
-
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/stretchr/testify/assert"
 )
 
 func prepareDeps(t *testing.T) (context.Context, *Repository) {
-	logger := zaptest.NewLogger(t)
 	ctx := context.Background()
 	deps, err := tests.NewTestDependencies(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo := NewRepository(deps.DB, logger)
+	repo := NewRepository(deps.DB)
 	return ctx, repo
 }
 

@@ -12,7 +12,6 @@ import (
 	"github.com/artni96/GophProfile/internal/config"
 	"github.com/artni96/GophProfile/internal/logger"
 	"github.com/artni96/GophProfile/internal/worker"
-	"go.uber.org/zap"
 )
 
 func run(cfg *config.Config) error {
@@ -21,13 +20,12 @@ func run(cfg *config.Config) error {
 	gfCtx, gfCancel := context.WithTimeout(ctx, gfPeriod)
 	defer gfCancel()
 
-	appLogger, err := logger.InitLogger("debug")
-	if err != nil {
-		return fmt.Errorf("failed to init logger")
-	}
+	appLogger, otelShutdown := logger.InitLogger(ctx)
+	defer otelShutdown()
+
 	app, err := app.NewApp(ctx, cfg, appLogger)
 	if err != nil {
-		app.Logger.Info("failed to init app", zap.Error(err))
+		app.Logger.Info("failed to init app", "error", err)
 		return fmt.Errorf("failed to init app")
 	}
 	app.LaunchServer()
