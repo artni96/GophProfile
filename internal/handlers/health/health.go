@@ -1,7 +1,6 @@
 package health
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -16,10 +15,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type Handler struct {
-	ctx      context.Context
 	db       *sqlx.DB
 	s3Client interfaces.S3I
 	logger   *slog.Logger
@@ -27,14 +26,12 @@ type Handler struct {
 }
 
 func NewHealthHandler(
-	ctx context.Context,
 	db *sqlx.DB,
 	s3Client *storage.S3Client,
 	service *avatars.Service,
 	logger *slog.Logger,
 ) *Handler {
 	return &Handler{
-		ctx:      ctx,
 		db:       db,
 		s3Client: s3Client,
 		logger:   logger,
@@ -55,7 +52,7 @@ func NewHealthHandler(
 //	@Router			/health [get]
 func (h *Handler) Check(w http.ResponseWriter, r *http.Request) {
 	var res models.HealthResponse
-	if err := h.db.PingContext(h.ctx); err != nil {
+	if err := h.db.PingContext(r.Context()); err != nil {
 		h.logger.ErrorContext(r.Context(), "failed to ping database", "error", err)
 		res.Database = false
 	} else {
@@ -91,7 +88,6 @@ func (h *Handler) Check(w http.ResponseWriter, r *http.Request) {
 }
 
 func HealthRouter(
-	ctx context.Context,
 	db *sqlx.DB, s3Client *storage.S3Client,
 	service *avatars.Service,
 	logger *slog.Logger,
@@ -99,17 +95,17 @@ func HealthRouter(
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
+	r.Use(otelhttp.NewMiddleware("health"))
 	r.Use(middleware.Logger)
 	r.Use(middlewares.PanicRecoverer(logger))
-	r.Use(middleware.RequestID)
 	r.Use(middlewares.GzipMiddleware)
 
-	handler := NewHealthHandler(ctx, db, s3Client, service, logger)
+	handler := NewHealthHandler(db, s3Client, service, logger)
 
 	r.Route("/", func(r chi.Router) {
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Method %s is forbidden", r.Method)))
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			fmt.Fprintf(w, "Method %s is forbidden", r.Method)
 		})
 		r.Get("/", handler.Check)
 	})

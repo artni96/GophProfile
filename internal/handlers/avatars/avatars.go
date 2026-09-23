@@ -1,7 +1,6 @@
 package avatars
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +15,7 @@ import (
 	"github.com/artni96/GophProfile/internal/models"
 	avatarsrepo "github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/pkg/interfaces"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	_ "golang.org/x/image/webp"
 
 	"github.com/artni96/GophProfile/internal/services/avatars"
@@ -25,14 +25,12 @@ import (
 
 type AvatarHandler struct {
 	Service interfaces.ServiceI
-	ctx     context.Context
 	logger  *slog.Logger
 }
 
-func NewAvatarHandler(ctx context.Context, service interfaces.ServiceI, logger *slog.Logger) *AvatarHandler {
+func NewAvatarHandler(service interfaces.ServiceI, logger *slog.Logger) *AvatarHandler {
 	return &AvatarHandler{
 		Service: service,
-		ctx:     ctx,
 		logger:  logger,
 	}
 }
@@ -74,7 +72,7 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.Service.Save(h.ctx, file, header, userID)
+	res, err := h.Service.Save(r.Context(), file, header, userID)
 	if err != nil {
 		h.logger.Error("failed to save image", "user_id", userID, "error", err)
 		if errors.Is(err, avatars.ErrExceededSize) {
@@ -132,7 +130,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	flt := models.AvatarFilters{
 		ID: avatarID,
 	}
-	res, err := h.Service.Get(h.ctx, flt, size)
+	res, err := h.Service.Get(r.Context(), flt, size)
 	if err != nil {
 		h.logger.Error("failed to fetch avatar", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
@@ -173,7 +171,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	parsedAvatarID := uuid.MustParse(avatarID)
-	res, err := h.Service.GetMetadata(h.ctx, parsedAvatarID)
+	res, err := h.Service.GetMetadata(r.Context(), parsedAvatarID)
 	if err != nil {
 		h.logger.Error("failed to fetch avatar metadata", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
@@ -234,7 +232,7 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		ID:     parsedAvatarID,
 		UserID: userID,
 	}
-	err := h.Service.Delete(h.ctx, flt)
+	err := h.Service.Delete(r.Context(), flt)
 	if err != nil {
 		h.logger.Error("failed to delete avatar", "error", err, "user_id", userID)
 		if errors.Is(err, avatarsrepo.ErrNotOwner) {
@@ -249,16 +247,16 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func AvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *slog.Logger) chi.Router {
+func AvatarRouter(service interfaces.ServiceI, logger *slog.Logger) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
+	r.Use(otelhttp.NewMiddleware("avatars"))
 	r.Use(middleware.Logger)
 	r.Use(middlewares.PanicRecoverer(logger))
-	r.Use(middleware.RequestID)
 	r.Use(middlewares.GzipMiddleware)
 
-	handler := NewAvatarHandler(ctx, service, logger)
+	handler := NewAvatarHandler(service, logger)
 
 	r.Route("/", func(r chi.Router) {
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {

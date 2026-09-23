@@ -11,6 +11,7 @@ import (
 	"github.com/artni96/GophProfile/internal/app"
 	"github.com/artni96/GophProfile/internal/config"
 	"github.com/artni96/GophProfile/internal/logger"
+	"github.com/artni96/GophProfile/internal/metrics"
 	"github.com/artni96/GophProfile/internal/worker"
 )
 
@@ -28,6 +29,10 @@ func run(cfg *config.Config) error {
 		app.Logger.Info("failed to init app", "error", err)
 		return fmt.Errorf("failed to init app")
 	}
+
+	otelMetricsShutdown := metrics.InitMeterProvider(ctx)
+	defer otelMetricsShutdown()
+
 	app.LaunchServer()
 
 	wp := worker.NewPool(app.Broker, app.Eg, app.Service, app.Logger)

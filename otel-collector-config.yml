@@ -3,6 +3,8 @@ receivers:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
 
 processors:
   batch:
@@ -16,6 +18,8 @@ processors:
         action: upsert
 
 exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
   debug:
     verbosity: detailed
   otlphttp/loki:
@@ -32,3 +36,7 @@ service:
         - resource/add-job
         - batch
       exporters: [debug, otlphttp/loki]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]

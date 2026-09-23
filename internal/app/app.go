@@ -61,10 +61,10 @@ func (a *App) InitDBConn(ctx context.Context) error {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	localCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
+	pingCtx, pingCtxCancel := context.WithTimeout(ctx, 3*time.Second)
+	defer pingCtxCancel()
 
-	err = db.PingContext(localCtx)
+	err = db.PingContext(pingCtx)
 	if err != nil {
 		a.Logger.Error("failed to ping database", "error", err)
 		return fmt.Errorf("failed to ping database: %w", err)
@@ -129,13 +129,13 @@ func (a *App) initRouter(ctx context.Context) error {
 
 	a.router.Get("/swagger/*", httpSwagger.WrapHandler)
 
-	avatarRouter := avatars.AvatarRouter(ctx, a.Service, a.Logger)
+	avatarRouter := avatars.AvatarRouter(a.Service, a.Logger)
 	a.router.Mount("/api/v1/avatars", avatarRouter)
 
-	userAvatarRouter := users.UserAvatarRouter(ctx, a.Service, a.Logger)
+	userAvatarRouter := users.UserAvatarRouter(a.Service, a.Logger)
 	a.router.Mount("/api/v1/users", userAvatarRouter)
 
-	healthRouter := health.HealthRouter(ctx, a.DB, a.S3Client, a.Service, a.Logger)
+	healthRouter := health.HealthRouter(a.DB, a.S3Client, a.Service, a.Logger)
 	a.router.Mount("/api/v1/health", healthRouter)
 
 	workDir, err := os.Getwd()
@@ -234,6 +234,5 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *slog.Logger) (*App,
 		app.Logger.Debug("failed to initialize server", "error", err)
 		return nil, fmt.Errorf("failed to initialize server: %w", err)
 	}
-
 	return app, nil
 }

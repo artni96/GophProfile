@@ -1,7 +1,6 @@
 package users
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,18 +15,17 @@ import (
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type UserAvatarHandler struct {
 	Service interfaces.ServiceI
-	ctx     context.Context
 	logger  *slog.Logger
 }
 
-func NewUserAvatarHandler(ctx context.Context, logger *slog.Logger, service interfaces.ServiceI) *UserAvatarHandler {
+func NewUserAvatarHandler(logger *slog.Logger, service interfaces.ServiceI) *UserAvatarHandler {
 	return &UserAvatarHandler{
 		Service: service,
-		ctx:     ctx,
 		logger:  logger,
 	}
 }
@@ -63,7 +61,7 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	flt := models.AvatarFilters{
 		UserID: userID,
 	}
-	res, err := h.Service.Get(h.ctx, flt, size)
+	res, err := h.Service.Get(r.Context(), flt, size)
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "failed to get user avatars", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
@@ -104,7 +102,7 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	flt := models.AvatarFilters{
 		UserID: userID,
 	}
-	err := h.Service.Delete(h.ctx, flt)
+	err := h.Service.Delete(r.Context(), flt)
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "failed to delete user avatars", "error", err)
 		if errors.Is(err, avatarsrepo.ErrNotOwner) {
@@ -177,7 +175,7 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 		Limit:  limit,
 		Offset: offset,
 	}
-	res, err := h.Service.GetMetadataList(h.ctx, flt)
+	res, err := h.Service.GetMetadataList(r.Context(), flt)
 	if err != nil {
 		h.logger.ErrorContext(r.Context(), "failed to get last user avatars", "error", err, "user_id", userID)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
@@ -198,16 +196,16 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonRes)
 }
 
-func UserAvatarRouter(ctx context.Context, service interfaces.ServiceI, logger *slog.Logger) chi.Router {
+func UserAvatarRouter(service interfaces.ServiceI, logger *slog.Logger) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
+	r.Use(otelhttp.NewMiddleware("users"))
 	r.Use(middleware.Logger)
 	r.Use(middlewares.PanicRecoverer(logger))
-	r.Use(middleware.RequestID)
 	r.Use(middlewares.GzipMiddleware)
 
-	handler := NewUserAvatarHandler(ctx, logger, service)
+	handler := NewUserAvatarHandler(logger, service)
 
 	r.Route("/", func(r chi.Router) {
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
