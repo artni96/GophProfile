@@ -23,6 +23,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jmoiron/sqlx"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"go.opentelemetry.io/otel"
 	"golang.org/x/sync/errgroup"
 
 	_ "github.com/artni96/GophProfile/api/swagger"
@@ -124,7 +125,7 @@ func (a *App) applyMigrations() error {
 	return nil
 }
 
-func (a *App) initRouter(ctx context.Context) error {
+func (a *App) initRouter() error {
 	a.router = chi.NewRouter()
 
 	a.router.Get("/swagger/*", httpSwagger.WrapHandler)
@@ -147,8 +148,8 @@ func (a *App) initRouter(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) InitServer(ctx context.Context) error {
-	err := a.initRouter(ctx)
+func (a *App) InitServer() error {
+	err := a.initRouter()
 	if err != nil {
 		return err
 	}
@@ -157,8 +158,8 @@ func (a *App) InitServer(ctx context.Context) error {
 }
 
 func (a *App) InitDependencies() {
-	repo := avatarsrepo.NewRepository(a.DB)
-	service := avatarsserv.NewService(repo, a.Logger, a.S3Client, a.Broker)
+	repo := avatarsrepo.NewRepository(a.DB, otel.Tracer("avatarRepoTracer"))
+	service := avatarsserv.NewService(repo, a.Logger, a.S3Client, a.Broker, otel.Tracer("avatarServiceTracer"))
 	a.Service = service
 }
 
@@ -188,7 +189,7 @@ func (a *App) Shutdown(ctx context.Context, gsCancel context.CancelFunc) {
 }
 
 func (a *App) initS3Client(cfg *config.Config, logger *slog.Logger) error {
-	s3client, err := storage.NewS3Client(cfg, logger, a.Cfg.S3.BucketName)
+	s3client, err := storage.NewS3Client(cfg, logger, a.Cfg.S3.BucketName, otel.Tracer("s3Tracer"))
 	if err != nil {
 		logger.Debug("failed to initialize minio server", "error", err)
 		return err
@@ -199,7 +200,7 @@ func (a *App) initS3Client(cfg *config.Config, logger *slog.Logger) error {
 }
 
 func (a *App) initBroker(logger *slog.Logger) error {
-	broker, err := broker.NewBroker(logger)
+	broker, err := broker.NewBroker(logger, otel.Tracer("brokerTracer"))
 	if err != nil {
 		logger.Debug("failed to initialize rabbitmq server", "error", err)
 		return err
@@ -229,7 +230,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *slog.Logger) (*App,
 		return nil, fmt.Errorf("failed to initialize broker: %w", err)
 	}
 	app.InitDependencies()
-	err = app.InitServer(ctx)
+	err = app.InitServer()
 	if err != nil {
 		app.Logger.Debug("failed to initialize server", "error", err)
 		return nil, fmt.Errorf("failed to initialize server: %w", err)

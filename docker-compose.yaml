@@ -60,10 +60,12 @@ services:
     ports:
       - "${SERVER_EXTERNAL_PORT}:${SERVER_INTERNAL_PORT}"
     environment:
-      - OTEL_SERVICE_NAME=myservice
-      - OTEL_RESOURCE_ATTRIBUTES=deployment.environment=development
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-      - OTEL_EXPORTER_OTLP_INSECURE=true
+        OTEL_SERVICE_NAME: gp-service
+        OTEL_RESOURCE_ATTRIBUTES: deployment.environment=development
+        OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:${OTEL_COLLECTOR_GRPC_INTERNAL_PORT}"
+        OTEL_EXPORTER_OTLP_COMPRESSION: gzip
+        OTEL_EXPORTER_OTLP_INSECURE: true
+        OTEL_LOG_LEVEL: debug
     depends_on:
       - db
       - minio
@@ -76,20 +78,27 @@ services:
     restart: on-failure
 
   otel-collector:
-    image: otel/opentelemetry-collector:0.143.0
+    image: otel/opentelemetry-collector-contrib:latest
     container_name: otel-collector
     ports:
-      - "4317:4317"
+      - "${OTEL_COLLECTOR_GRPC_EXTERNAL_PORT}:${OTEL_COLLECTOR_GRPC_INTERNAL_PORT}"
       - "13133:13133"
-      - "8889:8889"
-      - "4318:4318"
+      - "${PROMETHEUS_EXPORTER_EXTERNAL_PORT}:${PROMETHEUS_EXPORTER_INTERNAL_PORT}"
+      - "${OTEL_COLLECTOR_HTTP_EXTERNAL_PORT}:${OTEL_COLLECTOR_HTTP_INTERNAL_PORT}"
     command:
       - "--config=/etc/otel-collector-config.yml"
     volumes:
       - ./otel-collector-config.yml:/etc/otel-collector-config.yml:ro
     depends_on:
       - loki
+      - jaeger
     restart: unless-stopped
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:13133' ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - gp-network
 
@@ -99,7 +108,7 @@ services:
     command:
       - "-config.file=/etc/loki/local-config.yml"
     ports:
-      - "3100:3100"
+      - "${LOKI_EXTERNAL_PORT}:${LOKI_INTERNAL_PORT}"
     volumes:
       - ./loki-config.yml:/etc/loki/local-config.yml:ro
       - loki-data:/loki
@@ -111,7 +120,7 @@ services:
     image: grafana/grafana:12.3.1
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "${GRAFANA_EXTERNAL_PORT}:${GRAFANA_INTERNAL_PORT}"
     volumes:
       - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
       - grafana-data:/var/lib/grafana
@@ -127,7 +136,7 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_EXTERNAL_PORT}:${PROMETHEUS_INTERNAL_PORT}"
     networks:
       - gp-network
 
@@ -135,7 +144,19 @@ services:
     image: prom/node-exporter:latest
     container_name: node_exporter
     ports:
-      - "9100:9100"
+      - "${NODE_EXPORTER_EXTERNAL_PORT}:${NODE_EXPORTER_INTERNAL_PORT}"
+    networks:
+      - gp-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    restart: always
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - JAEGER_UI_THEMES_ENABLED=true
+    ports:
+      - "${JAEGER_EXTERNAL_PORT}:${JAEGER_INTERNAL_PORT}"
     networks:
       - gp-network
 

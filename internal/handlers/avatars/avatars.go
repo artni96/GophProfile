@@ -16,6 +16,9 @@ import (
 	avatarsrepo "github.com/artni96/GophProfile/internal/repository/avatars"
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	_ "golang.org/x/image/webp"
 
 	"github.com/artni96/GophProfile/internal/services/avatars"
@@ -26,12 +29,14 @@ import (
 type AvatarHandler struct {
 	Service interfaces.ServiceI
 	logger  *slog.Logger
+	tracer  trace.Tracer
 }
 
-func NewAvatarHandler(service interfaces.ServiceI, logger *slog.Logger) *AvatarHandler {
+func NewAvatarHandler(service interfaces.ServiceI, logger *slog.Logger, tracer trace.Tracer) *AvatarHandler {
 	return &AvatarHandler{
 		Service: service,
 		logger:  logger,
+		tracer:  tracer,
 	}
 }
 
@@ -52,6 +57,9 @@ func NewAvatarHandler(service interfaces.ServiceI, logger *slog.Logger) *AvatarH
 //	@Failure		500
 //	@Router			/avatars [post]
 func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
+	span := trace.SpanFromContext(r.Context())
+	span.AddEvent("avatars.uploading_started")
+
 	w.Header().Set("Content-Type", "application/json")
 	err := r.ParseMultipartForm(32 << 20)
 	if err != nil {
@@ -59,6 +67,8 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 	file, header, err := r.FormFile("image")
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.Error("failed to extract image metadata", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no image in form"))
@@ -66,6 +76,8 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := r.Header.Get("X-User-Id")
 	if userID == "" {
+		span.RecordError(errors.New("failed to extract user ID from request"))
+		span.SetStatus(codes.Error, "failed to extract user ID from request")
 		h.logger.Error("failed to extract user ID from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no user id in header"))
@@ -74,6 +86,8 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.Service.Save(r.Context(), file, header, userID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.Error("failed to save image", "user_id", userID, "error", err)
 		if errors.Is(err, avatars.ErrExceededSize) {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
@@ -90,11 +104,14 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 
 	bytesRes, err := json.Marshal(res)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(handlers.Response500)
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write(bytesRes)
+	span.SetStatus(codes.Ok, "")
 }
 
 // Get godoc
@@ -117,10 +134,15 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/avatars/{avatar_id} [get]
 func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
+	span := trace.SpanFromContext(r.Context())
+	span.AddEvent("avatars.retreiving_started")
+
 	w.Header().Set("Content-Type", "application/json")
 	strAvatarID := chi.URLParam(r, "avatar_id")
 	avatarID, err := uuid.Parse(strAvatarID)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.Error("failed to parse avatar id", "error", err)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(handlers.ErrMsg("Avatar not found"))
@@ -132,6 +154,8 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := h.Service.Get(r.Context(), flt, size)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.Error("failed to fetch avatar", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -144,6 +168,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", res.MimeType)
 	w.Write(res.Binary)
+	span.SetStatus(codes.Ok, "")
 }
 
 // GetMetadata godoc
@@ -162,6 +187,9 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/avatars/{avatar_id}/metadata [get]
 func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
+	span := trace.SpanFromContext(r.Context())
+	span.AddEvent("avatars.retreiving_metadata_started")
+
 	w.Header().Set("Content-Type", "application/json")
 	avatarID := chi.URLParam(r, "avatarID")
 	if avatarID == "" {
@@ -185,6 +213,8 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonRes, err := json.Marshal(res)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.Error("failed to marshal avatar metadata", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(handlers.Response500)
@@ -192,6 +222,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonRes)
+	span.SetStatus(codes.Ok, "")
 }
 
 // Delete godoc
@@ -212,8 +243,14 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/avatars/{avatar_id} [delete]
 func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	span := trace.SpanFromContext(r.Context())
+	span.AddEvent("avatars.removing_started")
+
 	avatarID := chi.URLParam(r, "avatarID")
 	if avatarID == "" {
+		span.RecordError(errors.New("failed to extract avatar id from request"))
+		span.SetStatus(codes.Error, "failed to extract avatar id from request")
 		h.logger.Error("failed to extract avatar id from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("failed to parse avatar_id"))
@@ -221,12 +258,14 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := r.Header.Get("X-User-Id")
 	if userID == "" {
+		span.RecordError(errors.New("failed to extract user ID from request"))
+		span.SetStatus(codes.Error, "failed to extract user ID from request")
 		h.logger.Error("failed to extract user ID from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no user id in header"))
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+
 	parsedAvatarID := uuid.MustParse(avatarID)
 	flt := models.AvatarFilters{
 		ID:     parsedAvatarID,
@@ -234,6 +273,8 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.Service.Delete(r.Context(), flt)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.Error("failed to delete avatar", "error", err, "user_id", userID)
 		if errors.Is(err, avatarsrepo.ErrNotOwner) {
 			w.WriteHeader(http.StatusForbidden)
@@ -244,6 +285,7 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	span.SetStatus(codes.Ok, "avatar removed")
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -256,7 +298,7 @@ func AvatarRouter(service interfaces.ServiceI, logger *slog.Logger) chi.Router {
 	r.Use(middlewares.PanicRecoverer(logger))
 	r.Use(middlewares.GzipMiddleware)
 
-	handler := NewAvatarHandler(service, logger)
+	handler := NewAvatarHandler(service, logger, otel.Tracer("avatarsTracer"))
 
 	r.Route("/", func(r chi.Router) {
 		r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {

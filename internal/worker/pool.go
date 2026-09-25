@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +16,9 @@ import (
 	"github.com/artni96/GophProfile/internal/models"
 	"github.com/artni96/GophProfile/pkg/interfaces"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -25,9 +29,16 @@ type Pool struct {
 	Eg           *errgroup.Group
 	service      interfaces.ServiceI
 	logger       *slog.Logger
+	tracer       trace.Tracer
 }
 
-func NewPool(broker *broker.Broker, eg *errgroup.Group, service interfaces.ServiceI, logger *slog.Logger) *Pool {
+func NewPool(
+	broker *broker.Broker,
+	eg *errgroup.Group,
+	service interfaces.ServiceI,
+	logger *slog.Logger,
+	tracer trace.Tracer,
+) *Pool {
 	return &Pool{
 		Broker:       broker,
 		WorkerNumber: runtime.NumCPU() - 1,
@@ -35,6 +46,7 @@ func NewPool(broker *broker.Broker, eg *errgroup.Group, service interfaces.Servi
 		Eg:           eg,
 		service:      service,
 		logger:       logger,
+		tracer:       tracer,
 	}
 }
 
@@ -95,12 +107,19 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 				wp.logger.Debug(fmt.Sprintf("%s is closed", wp.Broker.Dlq))
 				return fmt.Errorf("broker queue is closed")
 			}
+			headers := broker.Propagator(d.Headers)
+			remoteCtx := otel.GetTextMapPropagator().Extract(ctx, headers)
+			ctx, span := wp.tracer.Start(remoteCtx, "dql-worker")
 			msg, err := wp.prepareMsg(d)
 			if err != nil {
 				if err = d.Ack(false); err != nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					wp.logger.Error("dlq worker: failed to ack", "error", err)
 					return fmt.Errorf("dlq worker: ack after prepare failure: %w", err)
 				}
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				wp.logger.Debug("dlq worker failed to prepare message", "error", err)
 				continue
 			}
@@ -125,6 +144,8 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 				time.Sleep(time.Duration((attempt+1)*(attempt+1)) * time.Second)
 			}
 			if !isSuccess {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				switch msg.Action {
 				case models.Upload:
 					wp.logger.Debug("failed to upload thumbnail", "s3key", msg.S3Key, "error", err)
@@ -133,6 +154,8 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 				}
 
 				if err = d.Nack(false, false); err != nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					wp.logger.Debug("worker process nack failed", "error", err)
 				} else {
 					wp.logger.Debug(
@@ -146,11 +169,15 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 				wp.logger.Error("worker process ack failed", "error", err)
 				err = d.Nack(false, false)
 				if err != nil {
+					span.RecordError(err)
+					span.SetStatus(codes.Error, err.Error())
 					wp.logger.Error("failed to delete message", "error", err)
 				}
 				continue
 			}
 			wp.logger.Debug(fmt.Sprintf("msg from %s handled", wp.Broker.Dlq))
+			span.SetStatus(codes.Ok, "")
+			span.End()
 		}
 	}
 }
@@ -189,7 +216,9 @@ func (wp *Pool) worker(ctx context.Context, workerID int) error {
 			if !ok {
 				return fmt.Errorf("worker %d: delivery channel closed", workerID)
 			}
-
+			headers := broker.Propagator(d.Headers)
+			remoteCtx := otel.GetTextMapPropagator().Extract(ctx, headers)
+			ctx, span := wp.tracer.Start(remoteCtx, "worker-"+strconv.Itoa(workerID))
 			msg, err := wp.prepareMsg(d)
 			if err != nil {
 				wp.logger.Debug(
@@ -225,9 +254,13 @@ func (wp *Pool) worker(ctx context.Context, workerID int) error {
 			}
 
 			if err = d.Ack(false); err != nil {
+				span.RecordError(err)
+				span.SetStatus(codes.Error, err.Error())
 				wp.logger.Error("ack failed", "error", err)
 				return fmt.Errorf("worker %d: ack: %w", workerID, err)
 			}
+			span.SetStatus(codes.Ok, "")
+			span.End()
 		}
 	}
 }

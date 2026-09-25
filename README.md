@@ -8,3 +8,8 @@
 
 # Документация API
 Документация API (Swagger) доступна на ручке `/swagger/index.html`
+
+# Observation
+- Логи - `Loki/Grafana`
+- Метрики - `Prometheus/Grafana`
+- Трассировка - `Jaeger`

@@ -18,7 +18,7 @@ type Config struct {
 	ServerAddr string `env:"SERVER_ADDR"`
 	DBDsn      string `env:"DB_DSN"`
 	DBName     string `env:"DB_NAME"`
-	S3         *s3Config
+	S3         *S3Config
 }
 
 type dbConfig struct {
@@ -30,7 +30,7 @@ type dbConfig struct {
 	SSLMode    string `env:"SSL_MODE"`
 }
 
-type s3Config struct {
+type S3Config struct {
 	Region            string `env:"AWS_REGION"`
 	Host              string `env:"MINIO_HOST"`
 	Port              string `env:"MINIO_INTERNAL_PORT"`
@@ -45,8 +45,8 @@ type s3Config struct {
 	BucketName        string `env:"BUCKET_NAME"`
 }
 
-func newS3Config() (*s3Config, error) {
-	cfg := &s3Config{}
+func newS3Config() (*S3Config, error) {
+	cfg := &S3Config{}
 	if err := env.Parse(cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config: %w", err)
 	}

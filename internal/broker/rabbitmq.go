@@ -12,6 +12,10 @@ import (
 
 	"github.com/artni96/GophProfile/internal/models"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type BrokerI interface {
@@ -27,11 +31,13 @@ type Broker struct {
 	MainQ    string
 	Dlq      string
 	confirms chan amqp.Confirmation
+	tracer   trace.Tracer
 }
 
-func NewBroker(logger *slog.Logger) (*Broker, error) {
+func NewBroker(logger *slog.Logger, tracer trace.Tracer) (*Broker, error) {
 	broker := &Broker{
 		logger: logger,
+		tracer: tracer,
 	}
 	err := broker.Init()
 	if err != nil {
@@ -130,22 +136,37 @@ func (b *Broker) Init() error {
 }
 
 func (b *Broker) Produce(ctx context.Context, m models.Message) error {
-	brokerCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
+
+	brokerCtx, span := b.tracer.Start(ctx, "Message producing", trace.WithSpanKind(trace.SpanKindProducer))
+	defer span.End()
+	span.AddEvent("sending message to broker")
+	span.SetAttributes(
+		attribute.String("id", m.ID.String()),
+		attribute.String("avatar_id", m.AvatarID.String()),
+		attribute.String("user_id", m.UserID),
+		attribute.String("action", string(m.Action)),
+		attribute.String("s3key", m.S3Key),
+	)
+	headers := amqp.Table{
+		"avatar_id": m.AvatarID.String(),
+		"user_id":   m.UserID,
+		"action":    string(m.Action),
+		"s3_key":    m.S3Key,
+	}
+	otel.GetTextMapPropagator().Inject(brokerCtx, Propagator(headers))
 
 	err := b.Ch.PublishWithContext(brokerCtx, b.ex, "main", true, false, amqp.Publishing{
 		DeliveryMode: amqp.Persistent,
 		ContentType:  "application/octet-stream",
 		Body:         m.Body,
-		Headers: amqp.Table{
-			"avatar_id": m.AvatarID.String(),
-			"user_id":   m.UserID,
-			"action":    string(m.Action),
-			"s3_key":    m.S3Key,
-		},
-		MessageId: m.ID.String(),
+		Headers:      headers,
+		MessageId:    m.ID.String(),
 	})
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		b.logger.Error("failed to publish message", "error", err)
 		return fmt.Errorf("failed to publish message: %w", err)
 	}
@@ -153,23 +174,37 @@ func (b *Broker) Produce(ctx context.Context, m models.Message) error {
 	select {
 	case c, ok := <-b.confirms:
 		if !ok {
+			span.RecordError(fmt.Errorf("confirm channel closed; broker connection lost"))
+			span.SetStatus(codes.Error, "confirm channel closed; broker connection lost")
 			return errors.New("confirm channel closed; broker connection lost")
 		}
 		if !c.Ack {
-			return errors.New("broker nacked the message")
+			span.RecordError(fmt.Errorf("failed to ack message"))
+			span.SetStatus(codes.Error, "failed to ack message")
+			return errors.New("failed to ack message")
 		}
+		span.AddEvent("message confirmed")
 		b.logger.Debug("message delivered to broker")
 		return nil
 	case <-brokerCtx.Done():
+		span.RecordError(brokerCtx.Err())
+		span.SetStatus(codes.Error, "publish confirm timeout")
 		return fmt.Errorf("publish confirm timeout: %w", brokerCtx.Err())
 	}
 }
 
-func (b *Broker) Check() error {
+func (b *Broker) Check(ctx context.Context) error {
+	ctx, span := b.tracer.Start(ctx, "broker.health_check")
+	defer span.End()
+
 	ch, err := b.Conn.Channel()
 	if err != nil {
+		span.SetAttributes(attribute.String("broker.health_check_error", err.Error()))
+		span.SetStatus(codes.Error, err.Error())
 		return err
 	}
 	defer ch.Close()
+	span.SetAttributes(attribute.Bool("broker.is_healty", err == nil))
+	span.SetStatus(codes.Ok, "")
 	return nil
 }

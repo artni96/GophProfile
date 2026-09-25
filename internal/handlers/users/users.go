@@ -16,6 +16,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type UserAvatarHandler struct {
@@ -49,12 +51,17 @@ func NewUserAvatarHandler(logger *slog.Logger, service interfaces.ServiceI) *Use
 //	@Failure		500
 //	@Router			/users/{user_id}/avatar [get]
 func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
+	span := trace.SpanFromContext(r.Context())
+	span.AddEvent("user.avatar_retrieving_started")
+
 	w.Header().Set("Content-Type", "application/json")
 	userID := chi.URLParam(r, "user_id")
 	if userID == "" {
+		span.RecordError(errors.New("failed to get user id from url param"))
+		span.SetStatus(codes.Error, "failed to get user id from url param")
 		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(handlers.ErrMsg("No user id provided"))
+		w.Write(handlers.ErrMsg("failed to get user id from url param"))
 		return
 	}
 	size := r.URL.Query().Get("size")
@@ -63,6 +70,8 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := h.Service.Get(r.Context(), flt, size)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.ErrorContext(r.Context(), "failed to get user avatars", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
@@ -76,6 +85,7 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", res.MimeType)
 	h.logger.DebugContext(r.Context(), "got user avatar", "user_id", userID, "mime_type", res.MimeType)
 	w.Write(res.Binary)
+	span.SetStatus(codes.Ok, "")
 }
 
 // Delete godoc
@@ -91,9 +101,14 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/users/{user_id}/avatar [delete]
 func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
+	span := trace.SpanFromContext(r.Context())
+	span.AddEvent("user.avatar_removing_started")
+
 	w.Header().Set("Content-Type", "application/json")
 	userID := chi.URLParam(r, "user_id")
 	if userID == "" {
+		span.RecordError(errors.New("failed to get user id from url param"))
+		span.SetStatus(codes.Error, "failed to get user id from url param")
 		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("No user id provided"))
@@ -104,6 +119,8 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.Service.Delete(r.Context(), flt)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.ErrorContext(r.Context(), "failed to delete user avatars", "error", err)
 		if errors.Is(err, avatarsrepo.ErrNotOwner) {
 			w.WriteHeader(http.StatusForbidden)
@@ -116,6 +133,7 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	h.logger.DebugContext(r.Context(), "last user avatars deleted successfully", "user_id", userID)
 	w.WriteHeader(http.StatusNoContent)
+	span.SetStatus(codes.Ok, "")
 }
 
 // GetList godoc
@@ -133,9 +151,14 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 //	@Failure		500
 //	@Router			/users/{user_id}/avatars [get]
 func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
+	span := trace.SpanFromContext(r.Context())
+	span.AddEvent("user.list_avatars_retrieving_started")
+
 	w.Header().Set("Content-Type", "application/json")
 	userID := chi.URLParam(r, "user_id")
 	if userID == "" {
+		span.RecordError(errors.New("failed to get user id from url param"))
+		span.SetStatus(codes.Error, "failed to get user id from url param")
 		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("No user id provided"))
@@ -148,6 +171,8 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	} else {
 		convertedLimit, err := strconv.Atoi(strLimit)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			h.logger.ErrorContext(r.Context(), "failed to convert limit param to int", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(handlers.ErrMsg("Invalid limit value"))
@@ -163,6 +188,8 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	} else {
 		convertedOffset, err := strconv.Atoi(strOffset)
 		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(handlers.ErrMsg("Invalid offset value"))
 			return
@@ -177,6 +204,8 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	}
 	res, err := h.Service.GetMetadataList(r.Context(), flt)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.ErrorContext(r.Context(), "failed to get last user avatars", "error", err, "user_id", userID)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -186,6 +215,8 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	}
 	jsonRes, err := json.Marshal(res)
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
 		h.logger.ErrorContext(r.Context(), "failed to marshal response to json", "error", err, "user_id", userID)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(handlers.Response500)
@@ -194,6 +225,7 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	h.logger.DebugContext(r.Context(), "got user avatars list", "user_id", userID)
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonRes)
+	span.SetStatus(codes.Ok, "")
 }
 
 func UserAvatarRouter(service interfaces.ServiceI, logger *slog.Logger) chi.Router {
