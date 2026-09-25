@@ -6,6 +6,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"log/slog"
 	"mime/multipart"
 	"net/textproto"
 	"testing"
@@ -18,7 +19,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zaptest"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
+	"go.opentelemetry.io/otel"
 )
 
 func testPNG(t *testing.T) []byte {
@@ -63,7 +65,7 @@ func TestSave(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker, otel.Tracer("test"))
 
 	mockUser := "user-1"
 	mockStatus := "uploaded"
@@ -93,7 +95,7 @@ func TestGetMetadata(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker, otel.Tracer("test"))
 	ctx := t.Context()
 	avatarID := uuid.New()
 	repoResp := models.AvatarDBEntity{
@@ -108,7 +110,7 @@ func TestGetMetadata(t *testing.T) {
 		Width:     123,
 		S3Key:     "test.jpg",
 	}
-	repo.EXPECT().GetMetadata(ctx, gomock.Any()).Return(
+	repo.EXPECT().GetMetadata(gomock.Any(), gomock.Any()).Return(
 		repoResp,
 		[]models.GetThumbnailMetadata{
 			{
@@ -143,7 +145,7 @@ func TestGetMetadataList(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker, otel.Tracer("test"))
 	ctx := t.Context()
 	updatedAt := time.Now()
 	repoRespOriginals := []models.AvatarDBEntity{
@@ -196,7 +198,7 @@ func TestGetMetadataList(t *testing.T) {
 	}
 	s3.EXPECT().GetAddr().AnyTimes().Return("http://localhost:9000")
 	s3.EXPECT().GetBucketName().AnyTimes().Return("test-bucket")
-	repo.EXPECT().GetMetadataList(ctx, gomock.Any()).Return(repoRespOriginals, repoRespThumbnails, nil)
+	repo.EXPECT().GetMetadataList(gomock.Any(), gomock.Any()).Return(repoRespOriginals, repoRespThumbnails, nil)
 	res, err := s.GetMetadataList(ctx, models.AvatarFilters{UserID: "1"})
 	assert.NoError(t, err)
 	assert.Len(t, res.Avatars, 2)
@@ -223,7 +225,7 @@ func TestGet(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker, otel.Tracer("test"))
 	ctx := t.Context()
 	s3key := "test.jpg"
 	avatarID := uuid.New()
@@ -240,7 +242,7 @@ func TestGet(t *testing.T) {
 		Width:     123,
 		S3Key:     s3key,
 	}
-	repo.EXPECT().GetMetadata(ctx, gomock.Any()).Return(
+	repo.EXPECT().GetMetadata(gomock.Any(), gomock.Any()).Return(
 		repoResp,
 		[]models.GetThumbnailMetadata{
 			{
@@ -257,7 +259,7 @@ func TestGet(t *testing.T) {
 	)
 	s3.EXPECT().GetAddr().AnyTimes().Return("http://localhost:9000")
 	s3.EXPECT().GetBucketName().AnyTimes().Return("test-bucket")
-	s3.EXPECT().Get(ctx, gomock.Any()).Return(testPNG(t), nil)
+	s3.EXPECT().Get(gomock.Any(), gomock.Any()).Return(testPNG(t), nil)
 
 	res, err := s.Get(ctx, models.AvatarFilters{ID: avatarID}, "100x100")
 	assert.NoError(t, err)
@@ -270,7 +272,7 @@ func TestUploadThumbnailsToS3(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker, otel.Tracer("test"))
 	ctx := t.Context()
 	avatarID := uuid.New()
 	s3key := "test.png"
@@ -302,9 +304,9 @@ func TestDelete(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker, otel.Tracer("test"))
 	ctx := t.Context()
-	broker.EXPECT().Produce(ctx, gomock.Any()).Return(nil)
+	broker.EXPECT().Produce(gomock.Any(), gomock.Any()).Return(nil)
 	avatarID := uuid.New()
 	repoResp := models.AvatarDBEntity{
 		ID:        avatarID,
@@ -318,7 +320,7 @@ func TestDelete(t *testing.T) {
 		Width:     123,
 		S3Key:     "test.jpg",
 	}
-	repo.EXPECT().GetMetadata(ctx, gomock.Any()).Return(
+	repo.EXPECT().GetMetadata(gomock.Any(), gomock.Any()).Return(
 		repoResp,
 		[]models.GetThumbnailMetadata{
 			{
@@ -342,7 +344,7 @@ func TestDeleteFromS3(t *testing.T) {
 	s3 := interfaces.NewMockS3I(ctrl)
 	repo := interfaces.NewMockRepositoryI(ctrl)
 	broker := interfaces.NewMockBrokerI(ctrl)
-	s := NewService(repo, zaptest.NewLogger(t), s3, broker)
+	s := NewService(repo, slog.New(&otelslog.Handler{}), s3, broker, otel.Tracer("test"))
 	ctx := t.Context()
 	avatarID := uuid.New()
 	db, sqlMock, err := sqlmock.New()
@@ -354,7 +356,7 @@ func TestDeleteFromS3(t *testing.T) {
 	s3.EXPECT().Delete(gomock.Any(), gomock.Any()).Return(nil).Times(3)
 	repo.EXPECT().BeginTx(gomock.Any()).Return(tx, nil)
 	repo.EXPECT().CommitTx(gomock.Any()).Return(nil)
-	repo.EXPECT().DeleteAvatarWithThumbnails(tx, models.AvatarFilters{ID: avatarID}).Return(
+	repo.EXPECT().DeleteAvatarWithThumbnails(gomock.Any(), tx, models.AvatarFilters{ID: avatarID}).Return(
 		[]string{"key1", "key2", "key3"}, nil)
 	err = s.DeleteFromS3(ctx, avatarID)
 	assert.NoError(t, err)

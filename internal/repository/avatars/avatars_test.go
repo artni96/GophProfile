@@ -9,20 +9,19 @@ import (
 
 	"github.com/artni96/GophProfile/internal/models"
 	"github.com/artni96/GophProfile/tests"
-	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap/zaptest"
-
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/stretchr/testify/assert"
+	"go.opentelemetry.io/otel"
 )
 
 func prepareDeps(t *testing.T) (context.Context, *Repository) {
-	logger := zaptest.NewLogger(t)
+	tracer := otel.Tracer("testTracer")
 	ctx := context.Background()
 	deps, err := tests.NewTestDependencies(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo := NewRepository(deps.DB, logger)
+	repo := NewRepository(deps.DB, tracer)
 	return ctx, repo
 }
 
@@ -389,7 +388,7 @@ func TestDeleteAvatarWithThumbnails(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			s3Keys, err := repo.DeleteAvatarWithThumbnails(tx, tt.filters)
+			s3Keys, err := repo.DeleteAvatarWithThumbnails(ctx, tx, tt.filters)
 			if err != nil {
 				assert.ErrorIs(t, err, ErrAvatarNotFound)
 				repo.RollbackTx(tx)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -22,12 +23,13 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jmoiron/sqlx"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"go.uber.org/zap"
+	"go.opentelemetry.io/otel"
 	"golang.org/x/sync/errgroup"
 
 	_ "github.com/artni96/GophProfile/api/swagger"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -35,7 +37,7 @@ import (
 type App struct {
 	Eg       *errgroup.Group
 	Cfg      *config.Config
-	Logger   *zap.Logger
+	Logger   *slog.Logger
 	DB       *sqlx.DB
 	S3Client *storage.S3Client
 	Service  *avatarsserv.Service
@@ -56,18 +58,47 @@ func (a *App) InitDBConn(ctx context.Context) error {
 
 	db, err := sqlx.Open("pgx", a.Cfg.DBDsn)
 	if err != nil {
+		a.Logger.Error("failed to open database", "error", err)
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	localCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
-	defer cancel()
+	pingCtx, pingCtxCancel := context.WithTimeout(ctx, 3*time.Second)
+	defer pingCtxCancel()
 
-	err = db.PingContext(localCtx)
+	err = db.PingContext(pingCtx)
 	if err != nil {
+		a.Logger.Error("failed to ping database", "error", err)
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 	a.DB = db
 	a.Logger.Info("database connection initialized successfully")
+	err = a.runMigrations(db)
+	if err != nil {
+		a.Logger.Error("failed to run migrations: %w", "error", err)
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+	a.Logger.Debug("database migrations complete")
+	return nil
+}
+
+func (a *App) runMigrations(db *sqlx.DB) error {
+	driver, err := postgres.WithInstance(db.DB, &postgres.Config{})
+	if err != nil {
+		return fmt.Errorf("failed to initialize postgres driver: %w", err)
+	}
+
+	migrator, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres",
+		driver,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to initialize migrator: %w", err)
+	}
+
+	if err := migrator.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("failed to apply migrations: %w", err)
+	}
 	return nil
 }
 
@@ -94,18 +125,18 @@ func (a *App) applyMigrations() error {
 	return nil
 }
 
-func (a *App) initRouter(ctx context.Context) error {
+func (a *App) initRouter() error {
 	a.router = chi.NewRouter()
 
 	a.router.Get("/swagger/*", httpSwagger.WrapHandler)
 
-	avatarRouter := avatars.AvatarRouter(ctx, a.Service, a.Logger)
+	avatarRouter := avatars.AvatarRouter(a.Service, a.Logger)
 	a.router.Mount("/api/v1/avatars", avatarRouter)
 
-	userAvatarRouter := users.UserAvatarRouter(ctx, a.Service, a.Logger)
+	userAvatarRouter := users.UserAvatarRouter(a.Service, a.Logger)
 	a.router.Mount("/api/v1/users", userAvatarRouter)
 
-	healthRouter := health.HealthRouter(ctx, a.DB, a.S3Client, a.Service, a.Logger)
+	healthRouter := health.HealthRouter(a.DB, a.S3Client, a.Service, a.Logger)
 	a.router.Mount("/api/v1/health", healthRouter)
 
 	workDir, err := os.Getwd()
@@ -117,8 +148,8 @@ func (a *App) initRouter(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) InitServer(ctx context.Context) error {
-	err := a.initRouter(ctx)
+func (a *App) InitServer() error {
+	err := a.initRouter()
 	if err != nil {
 		return err
 	}
@@ -127,13 +158,13 @@ func (a *App) InitServer(ctx context.Context) error {
 }
 
 func (a *App) InitDependencies() {
-	repo := avatarsrepo.NewRepository(a.DB, a.Logger)
-	service := avatarsserv.NewService(repo, a.Logger, a.S3Client, a.Broker)
+	repo := avatarsrepo.NewRepository(a.DB, otel.Tracer("avatarRepoTracer"))
+	service := avatarsserv.NewService(repo, a.Logger, a.S3Client, a.Broker, otel.Tracer("avatarServiceTracer"))
 	a.Service = service
 }
 
 func (a *App) LaunchServer() {
-	a.Logger.Debug("starting server", zap.String("addr", a.Cfg.ServerAddr))
+	a.Logger.Debug("starting server", "addr", a.Cfg.ServerAddr)
 	a.Eg.Go(func() error {
 		return a.Server.Run()
 	})
@@ -143,12 +174,12 @@ func (a *App) Shutdown(ctx context.Context, gsCancel context.CancelFunc) {
 	a.Eg.Go(func() error {
 		err := a.Server.Shutdown(ctx)
 		if err != nil {
-			a.Logger.Error("failed to shutdown http server", zap.Error(err))
+			a.Logger.Error("failed to shutdown http server", "error", err)
 			return fmt.Errorf("failed to shutdown http server: %w", err)
 		}
 		err = a.DB.Close()
 		if err != nil {
-			a.Logger.Error("failed to close database", zap.Error(err))
+			a.Logger.Error("failed to close database", "error", err)
 			return fmt.Errorf("failed to close database: %w", err)
 		}
 		gsCancel()
@@ -157,10 +188,10 @@ func (a *App) Shutdown(ctx context.Context, gsCancel context.CancelFunc) {
 	})
 }
 
-func (a *App) initS3Client(cfg *config.Config, logger *zap.Logger) error {
-	s3client, err := storage.NewS3Client(cfg, logger, a.Cfg.S3.BucketName)
+func (a *App) initS3Client(cfg *config.Config, logger *slog.Logger) error {
+	s3client, err := storage.NewS3Client(cfg, logger, a.Cfg.S3.BucketName, otel.Tracer("s3Tracer"))
 	if err != nil {
-		logger.Debug("failed to initialize minio server", zap.Error(err))
+		logger.Debug("failed to initialize minio server", "error", err)
 		return err
 	}
 	a.S3Client = s3client
@@ -168,10 +199,10 @@ func (a *App) initS3Client(cfg *config.Config, logger *zap.Logger) error {
 	return nil
 }
 
-func (a *App) initBroker(logger *zap.Logger) error {
-	broker, err := broker.NewBroker(logger)
+func (a *App) initBroker(logger *slog.Logger) error {
+	broker, err := broker.NewBroker(logger, otel.Tracer("brokerTracer"))
 	if err != nil {
-		logger.Debug("failed to initialize rabbitmq server", zap.Error(err))
+		logger.Debug("failed to initialize rabbitmq server", "error", err)
 		return err
 	}
 	a.Broker = broker
@@ -179,7 +210,7 @@ func (a *App) initBroker(logger *zap.Logger) error {
 	return nil
 }
 
-func NewApp(ctx context.Context, cfg *config.Config, logger *zap.Logger) (*App, error) {
+func NewApp(ctx context.Context, cfg *config.Config, logger *slog.Logger) (*App, error) {
 	app := &App{
 		Eg:     new(errgroup.Group),
 		Cfg:    cfg,
@@ -187,7 +218,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.Logger) (*App, 
 	}
 	err := app.InitDBConn(ctx)
 	if err != nil {
-		app.Logger.Debug("failed to initialize database connection", zap.Error(err))
+		app.Logger.Debug("failed to initialize database connection", "error", err)
 		return nil, fmt.Errorf("failed to initialize database connection: %w", err)
 	}
 	err = app.initS3Client(cfg, app.Logger)
@@ -199,11 +230,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.Logger) (*App, 
 		return nil, fmt.Errorf("failed to initialize broker: %w", err)
 	}
 	app.InitDependencies()
-	err = app.InitServer(ctx)
+	err = app.InitServer()
 	if err != nil {
-		app.Logger.Debug("failed to initialize server", zap.Error(err))
+		app.Logger.Debug("failed to initialize server", "error", err)
 		return nil, fmt.Errorf("failed to initialize server: %w", err)
 	}
-
 	return app, nil
 }

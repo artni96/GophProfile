@@ -10,9 +10,11 @@ import (
 
 	"github.com/artni96/GophProfile/internal/app"
 	"github.com/artni96/GophProfile/internal/config"
-	"github.com/artni96/GophProfile/internal/logger"
+	"github.com/artni96/GophProfile/internal/observability/logs"
+	"github.com/artni96/GophProfile/internal/observability/metrics"
+	"github.com/artni96/GophProfile/internal/observability/traces"
 	"github.com/artni96/GophProfile/internal/worker"
-	"go.uber.org/zap"
+	"go.opentelemetry.io/otel"
 )
 
 func run(cfg *config.Config) error {
@@ -21,18 +23,24 @@ func run(cfg *config.Config) error {
 	gfCtx, gfCancel := context.WithTimeout(ctx, gfPeriod)
 	defer gfCancel()
 
-	appLogger, err := logger.InitLogger("debug")
-	if err != nil {
-		return fmt.Errorf("failed to init logger")
-	}
+	appLogger, otelShutdown := logger.InitLogger(ctx)
+	defer otelShutdown()
+
 	app, err := app.NewApp(ctx, cfg, appLogger)
 	if err != nil {
-		app.Logger.Info("failed to init app", zap.Error(err))
+		app.Logger.Info("failed to init app", "error", err)
 		return fmt.Errorf("failed to init app")
 	}
+
+	otelMetricsShutdown := metrics.InitMeterProvider(ctx)
+	defer otelMetricsShutdown()
+
+	otelTracesShutdown := traces.InitTracerProvider(ctx)
+	defer otelTracesShutdown()
+
 	app.LaunchServer()
 
-	wp := worker.NewPool(app.Broker, app.Eg, app.Service, app.Logger)
+	wp := worker.NewPool(app.Broker, app.Eg, app.Service, app.Logger, otel.Tracer("workerPoolTracer"))
 	go wp.Launch(ctx)
 
 	shutdownCtx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGINT)
