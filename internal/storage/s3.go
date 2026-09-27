@@ -37,7 +37,6 @@ func NewS3Client(cfg *config.Config, logger *slog.Logger, bucketName string, tra
 	client := s3.New(sess)
 	_, err := client.ListBuckets(&s3.ListBucketsInput{})
 	if err != nil {
-		fmt.Println(err.Error())
 		return nil, fmt.Errorf("failed to check s3 connection: %w", err)
 	}
 
@@ -55,7 +54,6 @@ func (s *S3Client) Save(ctx context.Context, objectKey string, reader io.ReadSee
 
 	span.AddEvent("s3.uploading")
 	span.SetAttributes(attribute.String("s3.uploading.objectKey", objectKey))
-	defer span.End()
 	_, err := s.client.PutObjectWithContext(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.BucketName),
 		Key:    aws.String(objectKey),
@@ -75,6 +73,7 @@ func (s *S3Client) Save(ctx context.Context, objectKey string, reader io.ReadSee
 func (s *S3Client) Get(ctx context.Context, objectKey string) ([]byte, error) {
 	ctx, span := s.tracer.Start(ctx, "S3Client.Get")
 	defer span.End()
+
 	span.SetAttributes(attribute.String("s3.get.objectKey", objectKey))
 	result, err := s.client.GetObjectWithContext(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.BucketName),
@@ -104,6 +103,7 @@ func (s *S3Client) Get(ctx context.Context, objectKey string) ([]byte, error) {
 func (s *S3Client) Check(ctx context.Context) (bool, error) {
 	ctx, span := s.tracer.Start(ctx, "s3.health_check")
 	defer span.End()
+
 	_, err := s.client.ListBuckets(&s3.ListBucketsInput{})
 	if err != nil {
 		span.SetAttributes(attribute.String("s3.health_check_error", err.Error()))
@@ -127,6 +127,7 @@ func (s *S3Client) GetBucketName() string {
 func (s *S3Client) Delete(ctx context.Context, objectKey string) error {
 	ctx, span := s.tracer.Start(ctx, "S3Client.Delete")
 	defer span.End()
+
 	span.SetAttributes(attribute.String("s3.delete.objectKey", objectKey))
 
 	_, err := s.client.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{

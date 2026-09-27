@@ -2,7 +2,7 @@ package traces
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
 
 	"go.opentelemetry.io/otel"
@@ -14,11 +14,10 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
-func InitTracerProvider(ctx context.Context) func() {
+func InitTracerProvider(ctx context.Context) (func(), error) {
 	exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithInsecure())
-
 	if err != nil {
-		log.Fatalf("failed to create OTLP trace exporter: %v", err)
+		return nil, fmt.Errorf("failed to create OTLP exporter for traces: %v", err)
 	}
 
 	res, err := resource.New(ctx,
@@ -30,7 +29,7 @@ func InitTracerProvider(ctx context.Context) func() {
 		),
 	)
 	if err != nil {
-		log.Fatalf("failed to create resource: %v", err)
+		return nil, fmt.Errorf("failed to create resource for traces: %v", err)
 	}
 
 	tracerProvider := sdktrace.NewTracerProvider(
@@ -40,7 +39,6 @@ func InitTracerProvider(ctx context.Context) func() {
 	)
 
 	otel.SetTracerProvider(tracerProvider)
-
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
@@ -53,5 +51,5 @@ func InitTracerProvider(ctx context.Context) func() {
 		if err := tracerProvider.Shutdown(ctx); err != nil {
 			otel.Handle(err)
 		}
-	}
+	}, nil
 }

@@ -59,7 +59,7 @@ func (h *UserAvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if userID == "" {
 		span.RecordError(errors.New("failed to get user id from url param"))
 		span.SetStatus(codes.Error, "failed to get user id from url param")
-		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
+		h.logger.DebugContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("failed to get user id from url param"))
 		return
@@ -109,7 +109,7 @@ func (h *UserAvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if userID == "" {
 		span.RecordError(errors.New("failed to get user id from url param"))
 		span.SetStatus(codes.Error, "failed to get user id from url param")
-		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
+		h.logger.DebugContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("No user id provided"))
 		return
@@ -159,7 +159,7 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 	if userID == "" {
 		span.RecordError(errors.New("failed to get user id from url param"))
 		span.SetStatus(codes.Error, "failed to get user id from url param")
-		h.logger.ErrorContext(r.Context(), "failed to get user id from url param")
+		h.logger.DebugContext(r.Context(), "failed to get user id from url param")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("No user id provided"))
 		return
@@ -190,6 +190,7 @@ func (h *UserAvatarHandler) GetList(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(codes.Error, err.Error())
+			h.logger.ErrorContext(r.Context(), "failed to convert offset param to int", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(handlers.ErrMsg("Invalid offset value"))
 			return

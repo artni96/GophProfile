@@ -23,20 +23,29 @@ func run(cfg *config.Config) error {
 	gfCtx, gfCancel := context.WithTimeout(ctx, gfPeriod)
 	defer gfCancel()
 
-	appLogger, otelShutdown := logger.InitLogger(ctx)
+	appLogger, otelShutdown, err := logger.InitLogger(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to init logger: %w", err)
+	}
 	defer otelShutdown()
+
+	otelMetricsShutdown, err := metrics.InitMeterProvider(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to init metrics provider: %w", err)
+	}
+	defer otelMetricsShutdown()
+
+	otelTracesShutdown, err := traces.InitTracerProvider(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to init trace provider: %w", err)
+	}
+	defer otelTracesShutdown()
 
 	app, err := app.NewApp(ctx, cfg, appLogger)
 	if err != nil {
-		app.Logger.Info("failed to init app", "error", err)
+		appLogger.Info("failed to init app", "error", err)
 		return fmt.Errorf("failed to init app")
 	}
-
-	otelMetricsShutdown := metrics.InitMeterProvider(ctx)
-	defer otelMetricsShutdown()
-
-	otelTracesShutdown := traces.InitTracerProvider(ctx)
-	defer otelTracesShutdown()
 
 	app.LaunchServer()
 

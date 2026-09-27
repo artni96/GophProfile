@@ -3,7 +3,6 @@ package metrics
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -21,19 +20,19 @@ type config struct {
 	OtelCollectorHTTPInternalPort string `env:"OTEL_COLLECTOR_HTTP_INTERNAL_PORT"`
 }
 
-func InitMeterProvider(ctx context.Context) func() {
+func InitMeterProvider(ctx context.Context) (func(), error) {
 	cfg := &config{}
 	if err := env.Parse(cfg); err != nil {
-		log.Fatalf("failed to parse config: %v", err)
+		return nil, fmt.Errorf("failed to parse .env file: %w", err)
 	}
+
 	exporter, err := otlpmetrichttp.New(
 		ctx,
 		otlpmetrichttp.WithInsecure(),
 		otlpmetrichttp.WithEndpoint(fmt.Sprintf("otel-collector:%s", cfg.OtelCollectorHTTPInternalPort)),
 	)
-
 	if err != nil {
-		log.Fatalf("failed to create OTLP exporter: %v", err)
+		return nil, fmt.Errorf("failed to create OTLP exporter for metrics: %w", err)
 	}
 
 	res, err := resource.New(ctx,
@@ -48,6 +47,9 @@ func InitMeterProvider(ctx context.Context) func() {
 			attribute.String("environment", os.Getenv("GO_ENV")),
 		),
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create resource for metrics: %w", err)
+	}
 
 	meterProvider := metric.NewMeterProvider(
 		metric.WithResource(res),
@@ -67,5 +69,5 @@ func InitMeterProvider(ctx context.Context) func() {
 		if err := meterProvider.Shutdown(ctx); err != nil {
 			otel.Handle(err)
 		}
-	}
+	}, nil
 }

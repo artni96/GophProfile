@@ -109,74 +109,14 @@ func (wp *Pool) dlqWorker(ctx context.Context) error {
 			}
 			headers := broker.Propagator(d.Headers)
 			remoteCtx := otel.GetTextMapPropagator().Extract(ctx, headers)
-			ctx, span := wp.tracer.Start(remoteCtx, "dql-worker")
-			msg, err := wp.prepareMsg(d)
+			spanCtx, span := wp.tracer.Start(remoteCtx, "dql-worker")
+			err = wp.handleMessage(spanCtx, d, "dlq")
 			if err != nil {
-				if err = d.Ack(false); err != nil {
-					span.RecordError(err)
-					span.SetStatus(codes.Error, err.Error())
-					wp.logger.Error("dlq worker: failed to ack", "error", err)
-					return fmt.Errorf("dlq worker: ack after prepare failure: %w", err)
-				}
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
-				wp.logger.Debug("dlq worker failed to prepare message", "error", err)
-				continue
+			} else {
+				span.SetStatus(codes.Ok, "")
 			}
-			isSuccess := false
-			for attempt := 0; attempt < 3; attempt++ {
-				if ctx.Err() != nil {
-					break
-				}
-				switch msg.Action {
-				case models.Upload:
-					err = wp.service.UploadThumbnailsToS3(ctx, msg)
-				case models.Remove:
-					err = wp.service.DeleteFromS3(ctx, msg.AvatarID)
-				default:
-					err = fmt.Errorf("unknown action: %v", msg.Action)
-				}
-				if err == nil {
-					isSuccess = true
-					break
-				}
-				wp.logger.Debug("attempt failed", "attempt", attempt, "error", err)
-				time.Sleep(time.Duration((attempt+1)*(attempt+1)) * time.Second)
-			}
-			if !isSuccess {
-				span.RecordError(err)
-				span.SetStatus(codes.Error, err.Error())
-				switch msg.Action {
-				case models.Upload:
-					wp.logger.Debug("failed to upload thumbnail", "s3key", msg.S3Key, "error", err)
-				case models.Remove:
-					wp.logger.Debug("failed to delete object", "error", err)
-				}
-
-				if err = d.Nack(false, false); err != nil {
-					span.RecordError(err)
-					span.SetStatus(codes.Error, err.Error())
-					wp.logger.Debug("worker process nack failed", "error", err)
-				} else {
-					wp.logger.Debug(
-						fmt.Sprintf("message goes to %s", wp.Broker.Dlq), "message id", msg.ID.String())
-				}
-				continue
-			}
-
-			err = d.Ack(false)
-			if err != nil {
-				wp.logger.Error("worker process ack failed", "error", err)
-				err = d.Nack(false, false)
-				if err != nil {
-					span.RecordError(err)
-					span.SetStatus(codes.Error, err.Error())
-					wp.logger.Error("failed to delete message", "error", err)
-				}
-				continue
-			}
-			wp.logger.Debug(fmt.Sprintf("msg from %s handled", wp.Broker.Dlq))
-			span.SetStatus(codes.Ok, "")
 			span.End()
 		}
 	}
@@ -218,51 +158,106 @@ func (wp *Pool) worker(ctx context.Context, workerID int) error {
 			}
 			headers := broker.Propagator(d.Headers)
 			remoteCtx := otel.GetTextMapPropagator().Extract(ctx, headers)
-			ctx, span := wp.tracer.Start(remoteCtx, "worker-"+strconv.Itoa(workerID))
-			msg, err := wp.prepareMsg(d)
+			spanCtx, span := wp.tracer.Start(remoteCtx, "worker-"+strconv.Itoa(workerID))
+			err = wp.handleMessage(spanCtx, d, strconv.Itoa(workerID))
 			if err != nil {
-				wp.logger.Debug(
-					"failed to prepare message for consumer", "worker id", workerID, "error", err)
-				_ = d.Nack(false, false)
-				continue
-			}
-
-			isSuccess := false
-			for attempt := 0; attempt < 3; attempt++ {
-				if ctx.Err() != nil {
-					break
-				}
-				switch msg.Action {
-				case models.Upload:
-					err = wp.service.UploadThumbnailsToS3(ctx, msg)
-				case models.Remove:
-					err = wp.service.DeleteFromS3(ctx, msg.AvatarID)
-				default:
-					err = fmt.Errorf("unknown action: %v", msg.Action)
-				}
-				if err == nil {
-					isSuccess = true
-					break
-				}
-				wp.logger.Debug("attempt failed", "attempt", attempt, "error", err)
-				time.Sleep(time.Duration((attempt+1)*(attempt+1)) * time.Second)
-			}
-
-			if !isSuccess {
-				_ = d.Nack(false, false) // DLQ
-				continue
-			}
-
-			if err = d.Ack(false); err != nil {
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
-				wp.logger.Error("ack failed", "error", err)
-				return fmt.Errorf("worker %d: ack: %w", workerID, err)
+			} else {
+				span.SetStatus(codes.Ok, "")
 			}
-			span.SetStatus(codes.Ok, "")
 			span.End()
 		}
 	}
+}
+
+func (wp *Pool) handleMessage(
+	ctx context.Context,
+	d amqp.Delivery,
+	workerID string,
+) error {
+	msg, err := wp.prepareMsg(d)
+	if err != nil {
+		wp.logger.Debug("failed to prepare message for consumer", "worker id", workerID, "error", err)
+		switch workerID {
+		case "dlq":
+			if ackErr := d.Ack(false); ackErr != nil {
+				wp.logger.Error("dlq worker: failed to ack message", "ack error", ackErr, "error", err)
+				return fmt.Errorf("dlq worker: failed to ack message: %w", ackErr)
+			}
+			wp.logger.Debug("dlq worker: failed to prepare message - message will be lost", "error", err)
+		default:
+			if nackErr := d.Nack(false, false); nackErr != nil {
+				wp.logger.Error(
+					"failed to nack message", "worker_id", workerID, "nack error", nackErr, "error", err)
+				return fmt.Errorf("failed to nack message -  worker_id %s: %w", workerID, err)
+			}
+			wp.logger.Debug("message goes to dlq", "worker id", workerID)
+		}
+		return fmt.Errorf("failed to prepare message for consumer, worker_id - %s: %w", workerID, err)
+	}
+
+	isSuccess := false
+	for attempt := 0; attempt < 3; attempt++ {
+		if ctx.Err() != nil {
+			break
+		}
+		switch msg.Action {
+		case models.Upload:
+			err = wp.service.UploadThumbnailsToS3(ctx, msg)
+		case models.Remove:
+			err = wp.service.DeleteFromS3(ctx, msg.AvatarID)
+		default:
+			err = fmt.Errorf("unknown action: %v", msg.Action)
+		}
+		if err == nil {
+			isSuccess = true
+			break
+		}
+		attemptIn := time.Duration((attempt+1)*(attempt+1)) * time.Second
+		wp.logger.Debug(
+			"attempt failed", "attempt", attempt, "next attempt in", attemptIn, "worker_id", workerID, "error", err)
+		select {
+		case <-time.After(attemptIn):
+		case <-ctx.Done():
+			wp.logger.Debug("context is done", "worker_id", workerID)
+		}
+	}
+
+	if !isSuccess {
+		switch msg.Action {
+		case models.Upload:
+			wp.logger.Debug("failed to upload thumbnail", "s3key", msg.S3Key, "worker_id", workerID)
+		case models.Remove:
+			wp.logger.Debug("failed to delete object", "worker_id", workerID)
+		}
+		if nackErr := d.Nack(false, false); nackErr != nil {
+			switch workerID {
+			case "dlq":
+				wp.logger.Debug(
+					"failed to nack message - message will be lost", "worker_id", workerID, "nack error", nackErr)
+			default:
+				wp.logger.Debug(
+					"failed to nack message - message goes to dlq", "worker id", workerID, "nack error", nackErr)
+			}
+		}
+		return fmt.Errorf("failed to handle message, worker_id - %s", workerID)
+	}
+
+	ackRrr := d.Ack(false)
+	if ackRrr != nil {
+		if nackErr := d.Nack(false, false); nackErr != nil {
+			switch workerID {
+			case "dlq":
+				wp.logger.Debug("failed to nack message - message will be lost", "worker_id", workerID, "nack error", nackErr, "ack error", ackRrr)
+			default:
+				wp.logger.Debug("failed to nack message - message goes to dlq", "worker id", workerID, "nack error", nackErr, "ack error", ackRrr)
+			}
+			return fmt.Errorf("failed to handle message, worker_id - %s", workerID)
+		}
+		return fmt.Errorf("failed to ack message, worker_id - %s", workerID)
+	}
+	return nil
 }
 
 func (wp *Pool) prepareMsg(d amqp.Delivery) (msg models.Message, err error) {

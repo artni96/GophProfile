@@ -69,7 +69,7 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.logger.Error("failed to extract image metadata", "error", err)
+		h.logger.DebugContext(r.Context(), "failed to extract image metadata", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no image in form"))
 		return
@@ -78,7 +78,7 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	if userID == "" {
 		span.RecordError(errors.New("failed to extract user ID from request"))
 		span.SetStatus(codes.Error, "failed to extract user ID from request")
-		h.logger.Error("failed to extract user ID from request")
+		h.logger.DebugContext(r.Context(), "failed to extract user ID from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no user id in header"))
 		return
@@ -88,7 +88,7 @@ func (h *AvatarHandler) Upload(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.logger.Error("failed to save image", "user_id", userID, "error", err)
+		h.logger.ErrorContext(r.Context(), "failed to save image", "user_id", userID, "error", err)
 		if errors.Is(err, avatars.ErrExceededSize) {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)
 			w.Write(handlers.FileTooLargeResponse)
@@ -143,7 +143,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.logger.Error("failed to parse avatar id", "error", err)
+		h.logger.DebugContext(r.Context(), "failed to parse avatar id", "error", err)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(handlers.ErrMsg("Avatar not found"))
 		return
@@ -156,7 +156,7 @@ func (h *AvatarHandler) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.logger.Error("failed to fetch avatar", "error", err)
+		h.logger.ErrorContext(r.Context(), "failed to fetch avatar", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(handlers.ErrMsg("Avatar not found"))
@@ -193,7 +193,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	avatarID := chi.URLParam(r, "avatarID")
 	if avatarID == "" {
-		h.logger.Error("failed to extract avatar id from request")
+		h.logger.DebugContext(r.Context(), "failed to extract avatar id from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("failed to parse avatar_id"))
 		return
@@ -201,7 +201,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	parsedAvatarID := uuid.MustParse(avatarID)
 	res, err := h.Service.GetMetadata(r.Context(), parsedAvatarID)
 	if err != nil {
-		h.logger.Error("failed to fetch avatar metadata", "error", err)
+		h.logger.ErrorContext(r.Context(), "failed to fetch avatar metadata", "error", err)
 		if errors.Is(err, avatarsrepo.ErrAvatarNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write(handlers.ErrMsg(fmt.Sprintf("avatar with id %s not found", avatarID)))
@@ -215,7 +215,7 @@ func (h *AvatarHandler) GetMetadata(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.logger.Error("failed to marshal avatar metadata", "error", err)
+		h.logger.ErrorContext(r.Context(), "failed to marshal avatar metadata", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(handlers.Response500)
 		return
@@ -251,7 +251,7 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if avatarID == "" {
 		span.RecordError(errors.New("failed to extract avatar id from request"))
 		span.SetStatus(codes.Error, "failed to extract avatar id from request")
-		h.logger.Error("failed to extract avatar id from request")
+		h.logger.DebugContext(r.Context(), "failed to extract avatar id from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("failed to parse avatar_id"))
 		return
@@ -260,7 +260,7 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if userID == "" {
 		span.RecordError(errors.New("failed to extract user ID from request"))
 		span.SetStatus(codes.Error, "failed to extract user ID from request")
-		h.logger.Error("failed to extract user ID from request")
+		h.logger.DebugContext(r.Context(), "failed to extract user ID from request")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(handlers.ErrMsg("no user id in header"))
 		return
@@ -275,7 +275,7 @@ func (h *AvatarHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		span.RecordError(err)
 		span.SetStatus(codes.Error, err.Error())
-		h.logger.Error("failed to delete avatar", "error", err, "user_id", userID)
+		h.logger.ErrorContext(r.Context(), "failed to delete avatar", "error", err, "user_id", userID)
 		if errors.Is(err, avatarsrepo.ErrNotOwner) {
 			w.WriteHeader(http.StatusForbidden)
 			w.Write(handlers.Response403)

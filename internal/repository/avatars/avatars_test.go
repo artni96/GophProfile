@@ -333,7 +333,6 @@ func TestUpdateStatus(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			fmt.Println("test")
 			tx, err := repo.BeginTx(ctx)
 			if err != nil {
 				t.Fatal(err)

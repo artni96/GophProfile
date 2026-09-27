@@ -2,7 +2,7 @@ package logger
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -12,14 +12,14 @@ import (
 	sdklog "go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/resource"
 	semconv "go.opentelemetry.io/otel/semconv/v1.43.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
-func InitLogger(ctx context.Context) (*slog.Logger, func()) {
+func InitLogger(ctx context.Context) (*slog.Logger, func(), error) {
 	exporter, err := otlploggrpc.New(ctx)
 	if err != nil {
-		log.Fatalf("failed to create OTLP log exporter: %v", err)
+		return nil, nil, fmt.Errorf("failed to create OTLP exporter for logs: %w", err)
 	}
+
 	res, err := resource.New(ctx,
 		resource.WithFromEnv(),
 		resource.WithTelemetrySDK(),
@@ -29,8 +29,9 @@ func InitLogger(ctx context.Context) (*slog.Logger, func()) {
 		),
 	)
 	if err != nil {
-		log.Fatalf("failed to create resource: %v", err)
+		return nil, nil, fmt.Errorf("failed to create log resource: %w", err)
 	}
+
 	loggerProvider := sdklog.NewLoggerProvider(
 		sdklog.WithResource(res),
 		sdklog.WithProcessor(sdklog.NewBatchProcessor(exporter)),
@@ -40,10 +41,9 @@ func InitLogger(ctx context.Context) (*slog.Logger, func()) {
 		otelslog.WithLoggerProvider(loggerProvider),
 	)
 	baseLogger := slog.New(handler)
-	logger := baseLogger.With(
-		"service", "gp-service",
-		"trace_id", trace.SpanFromContext(context.Background()))
+	logger := baseLogger.With("service", "gp-service")
 	slog.SetDefault(logger)
+
 	shutdown := func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
@@ -51,5 +51,5 @@ func InitLogger(ctx context.Context) (*slog.Logger, func()) {
 			otel.Handle(err)
 		}
 	}
-	return logger, shutdown
+	return logger, shutdown, nil
 }
