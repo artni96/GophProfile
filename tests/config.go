@@ -67,7 +67,6 @@ func (td *TestDependencies) initConfig() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(projectRoot + "/.env-tests")
 	err = godotenv.Load(projectRoot + "/.env-tests")
 	if err != nil {
 		return err
@@ -109,7 +108,6 @@ func (td *TestDependencies) initConfig() error {
 
 	cfg.DBDsn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 		dbHost, dbPortInt, dbUser, dbPassword, dbName, sslMode)
-	fmt.Println(cfg.DBDsn)
 	td.cfg = &cfg
 	return nil
 }

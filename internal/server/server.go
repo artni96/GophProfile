@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/artni96/GophProfile/internal/config"
 	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
 )
 
 type HTTPServer struct {
 	cfg    *config.Config
-	logger *zap.Logger
+	logger *slog.Logger
 	r      *chi.Mux
 	server *http.Server
 }
@@ -32,7 +32,7 @@ func (s *HTTPServer) Run() error {
 
 	err := s.server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		s.logger.Error("failed to start HTTP server", zap.Error(err))
+		s.logger.Error("failed to start HTTP server", "error", err)
 		return err
 	}
 	return nil
@@ -47,7 +47,7 @@ func (s *HTTPServer) Shutdown(ctx context.Context) error {
 	return nil
 }
 
-func NewHTTPServer(cfg *config.Config, logger *zap.Logger, r *chi.Mux) *HTTPServer {
+func NewHTTPServer(cfg *config.Config, logger *slog.Logger, r *chi.Mux) *HTTPServer {
 	return &HTTPServer{
 		cfg:    cfg,
 		logger: logger,

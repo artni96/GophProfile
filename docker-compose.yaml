@@ -1,7 +1,7 @@
 services:
   db:
-    image: postgres:latest
-    restart: always
+    image: postgres:16-alpine
+    restart: unless-stopped
     container_name: gp-db
 
     environment:
@@ -18,7 +18,7 @@ services:
   minio:
     image: minio/minio:latest
     container_name: minio-server
-    restart: always
+    restart: unless-stopped
     ports:
       - "${MINIO_EXTERNAL_PORT}:${MINIO_INTERNAL_PORT}"
       - "${MINIO_UI_EXTERNAL_PORT}:${MINIO_UI_INTERNAL_PORT}"
@@ -34,7 +34,7 @@ services:
   rabbitmq:
     image: rabbitmq:3.12-management
     container_name: rabbitmq
-    restart: always
+    restart: unless-stopped
     ports:
       - "${RABBITMQ_EXTERNAL_PORT}:${RABBITMQ_INTERNAL_PORT}"
       - "${RABBITMQ_UI_EXTERNAL_PORT}:${RABBITMQ_UI_INTERNAL_PORT}"
@@ -53,31 +53,119 @@ services:
       retries: 5
 
   server:
-    image: artni96/gophprofile-server-image:1.1
+    build:
+      context:
+        .
     container_name: gp-server
     ports:
       - "${SERVER_EXTERNAL_PORT}:${SERVER_INTERNAL_PORT}"
+    environment:
+        OTEL_SERVICE_NAME: gp-service
+        OTEL_RESOURCE_ATTRIBUTES: deployment.environment=development
+        OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:${OTEL_COLLECTOR_GRPC_INTERNAL_PORT}"
+        OTEL_EXPORTER_OTLP_COMPRESSION: gzip
+        OTEL_EXPORTER_OTLP_INSECURE: true
+        OTEL_LOG_LEVEL: debug
     depends_on:
       - db
       - minio
       - rabbitmq
+      - otel-collector
     networks:
       - gp-network
     env_file: .env
 
-    deploy:
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 5
+    restart: on-failure
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    ports:
+      - "${OTEL_COLLECTOR_GRPC_EXTERNAL_PORT}:${OTEL_COLLECTOR_GRPC_INTERNAL_PORT}"
+      - "13133:13133"
+      - "${PROMETHEUS_EXPORTER_EXTERNAL_PORT}:${PROMETHEUS_EXPORTER_INTERNAL_PORT}"
+      - "${OTEL_COLLECTOR_HTTP_EXTERNAL_PORT}:${OTEL_COLLECTOR_HTTP_INTERNAL_PORT}"
+    command:
+      - "--config=/etc/otel-collector-config.yml"
     volumes:
-      - ./logs:/app/internal/logger
+      - ./otel-collector-config.yml:/etc/otel-collector-config.yml:ro
+    depends_on:
+      - loki
+      - jaeger
+    restart: unless-stopped
+    healthcheck:
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:13133' ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - gp-network
+
+  loki:
+    image: grafana/loki:3.6.3
+    container_name: loki
+    command:
+      - "-config.file=/etc/loki/local-config.yml"
+    ports:
+      - "${LOKI_EXTERNAL_PORT}:${LOKI_INTERNAL_PORT}"
+    volumes:
+      - ./loki-config.yml:/etc/loki/local-config.yml:ro
+      - loki-data:/loki
+    restart: unless-stopped
+    networks:
+      - gp-network
+
+  grafana:
+    image: grafana/grafana:12.3.1
+    container_name: grafana
+    ports:
+      - "${GRAFANA_EXTERNAL_PORT}:${GRAFANA_INTERNAL_PORT}"
+    volumes:
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+    restart: unless-stopped
+    networks:
+      - gp-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "${PROMETHEUS_EXTERNAL_PORT}:${PROMETHEUS_INTERNAL_PORT}"
+    networks:
+      - gp-network
+
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    ports:
+      - "${NODE_EXPORTER_EXTERNAL_PORT}:${NODE_EXPORTER_INTERNAL_PORT}"
+    networks:
+      - gp-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    restart: always
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - JAEGER_UI_THEMES_ENABLED=true
+    ports:
+      - "${JAEGER_EXTERNAL_PORT}:${JAEGER_INTERNAL_PORT}"
+    networks:
+      - gp-network
 
 volumes:
   minio_data:
   rabbitmq_data:
   postgres_data:
+  loki-data:
+  grafana-data:
 
 networks:
   gp-network:

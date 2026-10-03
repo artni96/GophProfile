@@ -20,7 +20,7 @@ type RepositoryI interface {
 		originals []models.AvatarDBEntity, thumbnails []models.GetThumbnailMetadata, err error)
 	SaveThumbnail(ctx context.Context, tx *sqlx.Tx, t models.SaveThumbnail) error
 	UpdateStatus(ctx context.Context, tx *sqlx.Tx, status models.UpdateAvatarStatus) error
-	DeleteAvatarWithThumbnails(tx *sqlx.Tx, flt models.AvatarFilters) ([]string, error)
+	DeleteAvatarWithThumbnails(ctx context.Context, tx *sqlx.Tx, flt models.AvatarFilters) ([]string, error)
 	BeginTx(ctx context.Context) (*sqlx.Tx, error)
 	CommitTx(tx *sqlx.Tx) error
 	RollbackTx(tx *sqlx.Tx) error
@@ -42,7 +42,7 @@ type ServiceI interface {
 type S3I interface {
 	Save(ctx context.Context, objectKey string, reader io.ReadSeeker) error
 	Get(ctx context.Context, objectKey string) ([]byte, error)
-	Check() (bool, error)
+	Check(ctx context.Context) (bool, error)
 	GetAddr() string
 	GetBucketName() string
 	Delete(ctx context.Context, objectKey string) error
@@ -51,5 +51,5 @@ type S3I interface {
 //go:generate
 type BrokerI interface {
 	Produce(ctx context.Context, m models.Message) error
-	Check() error
+	Check(ctx context.Context) error
 }

@@ -3,22 +3,22 @@ package middlewares
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"runtime/debug"
 	"strings"
 
 	"github.com/artni96/GophProfile/internal/config"
-	"go.uber.org/zap"
 )
 
-func PanicRecoverer(logger *zap.Logger) func(http.Handler) http.Handler {
+func PanicRecoverer(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			defer func() {
 				if recovered := recover(); recovered != nil {
 					logger.Info("got panic",
-						zap.String("error message", fmt.Sprintf("panic recovered: %v\n", recovered)),
-						zap.String("call stack", string(debug.Stack())),
+						"error message", fmt.Sprintf("panic recovered: %v\n", recovered),
+						"call stack", string(debug.Stack()),
 					)
 					w.Header().Set("Content-Type", "application/json")
 					w.WriteHeader(http.StatusInternalServerError)
